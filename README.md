@@ -6,5 +6,5 @@ GUI launcher for Linux Smartphones
 
 
 
-powered by PyGame
+powered by PySide6
 
