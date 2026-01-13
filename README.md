@@ -4,18 +4,20 @@ A Linux-mobile desktop environment styled after Android & iOS
 
 to install:
 
--recomended to use a fresh install of Debain 13 with NO desktop, 
--install git:
+recomended to use a fresh install of Debain 13 with NO desktop,
+
+install git:
 ```
 sudo apt install git
 ```
--clone repo:
+clone repo:
 ```
 git clone https://github.com/DansDesigns/Alternix.git
 ```
--cd into the newly created repo folder,
-
-
+cd into the newly created repo folder
+```
+cd Alternix
+```
 give permission & run:
 ```
 chmod +x install-alternix.sh
