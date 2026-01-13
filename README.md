@@ -11,7 +11,7 @@ sudo apt install git
 ```
 -clone repo:
 ```
-
+git clone https://github.com/DansDesigns/Alternix.git
 ```
 -cd into the newly created repo folder,
 
