@@ -1,0 +1,10 @@
+#!/bin/bash
+/usr/local/bin/osm-lock --auth
+AUTH_RESULT=$?
+
+if [ $AUTH_RESULT -eq 0 ]; then
+    /usr/bin/sudo -S "$@"
+else
+    echo "Authentication failed or cancelled."
+    exit 1
+fi

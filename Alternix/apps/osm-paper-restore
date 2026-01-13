@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+import os
+import configparser
+import subprocess
+
+config_path = os.path.expanduser("~/.config/Alternix/osm-paper.conf")
+if not os.path.exists(config_path):
+    raise SystemExit(0)
+
+cfg = configparser.ConfigParser()
+cfg.read(config_path)
+
+if "last" not in cfg:
+    raise SystemExit(0)
+
+wall = cfg["last"].get("wallpaper", "").strip()
+mode = cfg["last"].get("mode", "zoom").strip()
+
+if not wall or not os.path.exists(wall):
+    raise SystemExit(0)
+
+mode_map = {
+    "zoom":   "--zoom",
+    "fit":    "--stretch",
+    "tile":   "--tile",
+    "center": "--center",
+}
+
+flag = mode_map.get(mode, "--zoom")
+
+subprocess.Popen(["xwallpaper", flag, wall])
+
