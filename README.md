@@ -1,48 +1,76 @@
 # Alternix
-a Linux-mobile desktop environment styled after Android & iOS
+A Linux-mobile desktop environment styled after Android & iOS
+
 
 to install:
+
 -recomended to use a fresh install of Debain 13 with NO desktop, 
 -install git:
+```
 sudo apt install git
--clone repo,
+```
+-clone repo:
+```
+
+```
 -cd into the newly created repo folder,
 
--give permission:
+
+give permission & run:
+```
 chmod +x install-alternix.sh
-
--run:
 ./install-alternix.sh
+```
 
-if wont run, use:
-
+if it doesnt run, use:
+```
 sed -i 's/\r$//' install-alternix.sh
 chmod +x install-alternix.sh
 ./install-alternix.sh
+```
 
 Follow the onscreen prompts - it will ask for a username, use the same as your username to install for yourself..
+
 nala is used as a package manager front-end (inplace of apt) after setting a username nala will fetch the local mirrors, when asked input: 1 2 3 4 and press enter.
 
+
 once nala is updated the following packages will be downloaded:
--fastfetch qtbase5-dev qt5-qmake qtdeclarative5-dev \
--fonts-noto-color-emoji libxcomposite-dev libxrender-dev libxfixes-dev \
--xwallpaper pkg-config libpoppler-qt5-dev htop python3-pip curl git \
--python3-venv picom qtile redshift onboard samba xdotool alacritty \
--synaptic brightnessctl pavucontrol pulseaudio alsa-utils flatpak libevdev-dev\
--snapd power-profiles-daemon xprintidle libx11-dev libxtst-dev ntfs-3g \
--kalk vlc qt5-style-kvantum thermald network-manager
+```
+fastfetch qtbase5-dev qt5-qmake qtdeclarative5-dev
+
+fonts-noto-color-emoji libxcomposite-dev libxrender-dev libxfixes-dev
+
+xwallpaper pkg-config libpoppler-qt5-dev htop python3-pip curl git
+
+python3-venv picom qtile redshift onboard samba xdotool alacritty
+
+synaptic brightnessctl pavucontrol pulseaudio alsa-utils flatpak libevdev-dev
+
+snapd power-profiles-daemon xprintidle libx11-dev libxtst-dev ntfs-3g
+
+kalk vlc qt5-style-kvantum thermald network-manager
+```
 
 
 
 edit the install-alternix.sh script to enable or disable packages, the following flatpaks are set to be installed automatically:
--sudo flatpak install -y flathub com.github.joseexposito.touche
--sudo flatpak install -y flathub io.github.kolunmi.Bazaar --user
--sudo flatpak install -y flathub com.valvesoftware.Steam
--sudo flatpak install -y flathub net.retrodeck.retrodeck
--sudo flatpak install -y flathub org.kde.kweather
--sudo flatpak install -y flathub net.sourceforge.ExtremeTuxRacer
--sudo flatpak install -y flathub io.github.swordpuffin.hunt
--sudo flatpak install -y flathub com.github.avojak.warble
--sudo flatpak install -y flathub org.kde.qrca
+```
+sudo flatpak install -y flathub com.github.joseexposito.touche
 
+sudo flatpak install -y flathub io.github.kolunmi.Bazaar --user
+
+sudo flatpak install -y flathub com.valvesoftware.Steam
+
+sudo flatpak install -y flathub net.retrodeck.retrodeck
+
+sudo flatpak install -y flathub org.kde.kweather
+
+sudo flatpak install -y flathub net.sourceforge.ExtremeTuxRacer
+
+sudo flatpak install -y flathub io.github.swordpuffin.hunt
+
+sudo flatpak install -y flathub com.github.avojak.warble
+
+sudo flatpak install -y flathub org.kde.qrca
+```
 
