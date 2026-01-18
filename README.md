@@ -1,6 +1,6 @@
 # Alternix
 A Linux-mobile desktop environment styled after Android & iOS
-![Alterni](https://github.com/DansDesigns/Alternix/blob/main/Alterni.png)
+![Alterni](https://github.com/DansDesigns/OSM-Phone/blob/main/OS%20Concepts/Alternix/screenshot-20251210-154950.png)
 
 to install:
 
