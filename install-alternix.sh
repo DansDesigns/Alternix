@@ -10,7 +10,7 @@ echo "-------------------------------------------"
 echo ""
 
 # Root of the Alternix repo
-ALT_ROOT="$HOME/Alternix"
+ALT_ROOT="$HOME/Alternix/Alternix"
 
 if [ ! -d "$ALT_ROOT" ]; then
     echo "ERROR: $ALT_ROOT not found. Please place install.sh inside ~/Alternix."
@@ -113,8 +113,8 @@ sudo nala install -y \
     
 sudo nala install -y --no-install-recommends plasma-dialer spacebar #plasma-discover
 
-sudo cp -r ~/Alternix/onboard /usr/share/onboard
-sudo cp ~/Alternix/configs/.alacritty.toml ~/
+#sudo cp -r ~/Alternix/onboard /usr/share/onboard
+#sudo cp ~/Alternix/configs/.alacritty.toml ~/
 
 sudo systemctl enable --now power-profiles-daemon
 
