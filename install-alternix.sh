@@ -130,8 +130,8 @@ echo "[System] Installing Flatpaks..."
 
 # Install flatpaks
 sudo flatpak install -y flathub com.github.joseexposito.touche
-sudo flatpak install -y flathub io.github.kolunmi.Bazaar --user
-sudo flatpak install -y flathub com.valvesoftware.Steam
+sudo flatpak install -y flathub io.github.kolunmi.Bazaar
+#sudo flatpak install -y flathub com.valvesoftware.Steam
 sudo flatpak install -y flathub net.retrodeck.retrodeck
 sudo flatpak install -y flathub org.kde.kweather
 sudo flatpak install -y flathub net.sourceforge.ExtremeTuxRacer
