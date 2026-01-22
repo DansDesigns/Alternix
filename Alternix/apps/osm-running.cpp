@@ -363,7 +363,9 @@ void SidePanel::refreshWindows() {
         QString title=getWindowTitle(m_dpy,w);
         if(title.isEmpty()) continue;
 
-        if(title.toLower().contains("osm-running", "osm-launcher")) continue;
+        if(title.toLower().contains("osm-running")) continue;
+        if(title.toLower().contains("osm-launcher")) continue;
+        if(title.toLower().contains("wosp-shell")) continue;
 
         QString cls=getWindowClass(m_dpy,w);
         titles << title;
@@ -571,7 +573,7 @@ public:
         setMouseTracking(true);
 
         QRect g = QGuiApplication::primaryScreen()->geometry();
-        setGeometry(g.x(), g.y(), 10, g.height());
+        setGeometry(g.x(), g.y(), 25, g.height());
         setStyleSheet("background: rgba(0,0,0,0);");
 
         show();
