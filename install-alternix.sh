@@ -220,6 +220,12 @@ else
     echo "• No configs folder found, skipping."
 fi
 
+
+
+cd "$ALT_ROOT/decky"
+cp decky_installer.desktop ~
+
+
 # ────────────────────────────────────────────────
 # Install Fonts (from ~/Alternix/fonts)
 # ────────────────────────────────────────────────
