@@ -48,6 +48,10 @@ echo ""
 echo "User setup complete. Username set to: $TARGET_USER"
 echo ""
 
+echo "-[System] Installing XLibre.."
+chmod +x install_xlibre.sh
+sudo ./install_xlibre.sh
+
 # ────────────────────────────────────────────────
 # 1. Install apps & dependencies
 # ────────────────────────────────────────────────
@@ -59,7 +63,7 @@ wget -qO - https://deb.volian.org/volian/volian.gpg | sudo tee /etc/apt/trusted.
 
 
 echo "- Installing Nala.."
-sudo apt update -y && sudo apt install nala nala -y
+sudo apt install nala nala -y
 
 sudo rm /etc/apt/sources.list.d/volian.list
 sudo rm /etc/apt/trusted.gpg.d/volian.gpg
@@ -94,9 +98,9 @@ sudo rm /etc/apt/trusted.gpg.d/volian.gpg
 #  fi
 #}
 #EOF
-
 #echo "- Nala conversion complete.."
-#echo "- Running Nala Server Fetch.."
+
+echo "- Running Nala Server Fetch.."
 sudo nala fetch
 
 
@@ -111,7 +115,7 @@ sudo nala install -y \
     snapd power-profiles-daemon xprintidle libx11-dev libxtst-dev ntfs-3g \
     kalk vlc qt5-style-kvantum thermald network-manager
     
-sudo nala install -y --no-install-recommends plasma-dialer spacebar #plasma-discover
+sudo nala install -y --no-install-recommends plasma-dialer spacebar plasma-discover
 
 #sudo cp -r ~/Alternix/onboard /usr/share/onboard
 #sudo cp ~/Alternix/configs/.alacritty.toml ~/
@@ -131,7 +135,6 @@ echo "[System] Installing Flatpaks..."
 # Install flatpaks
 sudo flatpak install -y flathub com.github.joseexposito.touche
 sudo flatpak install -y flathub io.github.kolunmi.Bazaar
-#sudo flatpak install -y flathub com.valvesoftware.Steam
 sudo flatpak install -y flathub net.retrodeck.retrodeck
 sudo flatpak install -y flathub org.kde.kweather
 sudo flatpak install -y flathub net.sourceforge.ExtremeTuxRacer

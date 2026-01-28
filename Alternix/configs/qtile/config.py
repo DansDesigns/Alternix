@@ -61,7 +61,7 @@ def lock_on_resume():
 @hook.subscribe.startup
 def autostart():
     # Autostart Programs
-    subprocess.Popen(['osm-lockd'])
+#    subprocess.Popen(['osm-lockd'])
     subprocess.Popen(['osm-paper-restore'])
     subprocess.Popen(['osm-notify'])
     # subprocess.Popen(['osm-launcher'])
