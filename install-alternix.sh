@@ -48,9 +48,9 @@ echo ""
 echo "User setup complete. Username set to: $TARGET_USER"
 echo ""
 
-echo "-[System] Installing XLibre.."
-chmod +x install_xlibre.sh
-sudo ./install_xlibre.sh
+#echo "-[System] Installing XLibre.."
+#chmod +x install_xlibre.sh
+#sudo ./install_xlibre.sh
 
 # ────────────────────────────────────────────────
 # 1. Install apps & dependencies
