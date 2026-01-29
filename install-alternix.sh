@@ -10,7 +10,7 @@ echo "-------------------------------------------"
 echo ""
 
 # Root of the Alternix repo
-ALT_ROOT="$HOME/Alternix/Alternix"
+ALT_ROOT="$HOME/Alternix"
 
 if [ ! -d "$ALT_ROOT" ]; then
     echo "ERROR: $ALT_ROOT not found. Please place install.sh inside ~/Alternix."
@@ -150,7 +150,7 @@ sudo flatpak install -y flathub org.kde.qrca
 # ────────────────────────────────────────────────
 echo "[System] Installing local .deb packages..."
 
-INSTALLER_DIR="$ALT_ROOT/installers"
+INSTALLER_DIR="$ALT_ROOT/Alternix/installers"
 
 if [ -d "$INSTALLER_DIR" ]; then
     DEB_COUNT=$(ls -1 "$INSTALLER_DIR"/*.deb 2>/dev/null | wc -l)
@@ -182,7 +182,7 @@ fi
 #            Curl Commands
 # ────────────────────────────────────────────────
 
-cd "$ALT_ROOT"
+cd "$ALT_ROOT/Alternix"
 
 # Install Starship
 echo "[System] Installing Starship prompt..."
@@ -205,7 +205,7 @@ curl -fsS https://dl.brave.com/install.sh | sh -s -- --yes
 echo " "
 echo "[Config] Installing user configs..."
 
-CONFIG_SRC="$ALT_ROOT/configs"
+CONFIG_SRC="$ALT_ROOT/Alternix/configs"
 CONFIG_DST="$HOME/.config"
 
 mkdir -p "$CONFIG_DST"
@@ -222,7 +222,7 @@ fi
 
 
 
-cd "$ALT_ROOT/decky"
+cd "$ALT_ROOT/Alternix/decky"
 cp decky_installer.desktop ~
 
 
@@ -234,7 +234,7 @@ echo "[Config] Installing Fonts..."
 
 if [ -d "$ALT_ROOT/fonts" ]; then
     sudo mkdir -p /usr/local/share/fonts/alternix
-    sudo cp "$ALT_ROOT/fonts/"* /usr/local/share/fonts/alternix/
+    sudo cp "$ALT_ROOT/Alternix/fonts/"* /usr/local/share/fonts/alternix/
     sudo fc-cache -f
     echo "• Fonts installed successfully."
 else
@@ -251,8 +251,8 @@ echo "[Config] Installing Wallpapers..."
 WALL_DST="$HOME/Pictures/wallpapers"
 mkdir -p "$WALL_DST"
 
-if [ -d "$ALT_ROOT/wallpapers" ]; then
-    cp "$ALT_ROOT/wallpapers/"* "$WALL_DST/"
+if [ -d "$ALT_ROOT/Alternix/wallpapers" ]; then
+    cp "$ALT_ROOT/Alternix/wallpapers/"* "$WALL_DST/"
     echo "• Wallpapers installed to $WALL_DST"
 else
     echo "• No wallpapers folder found, skipping."
@@ -307,7 +307,7 @@ EOF
 echo " "
 
 echo "[7/10] Building Alternix apps..."
-cd "$ALT_ROOT" || { echo "ERROR: $ALT_ROOT not found"; exit 1; }
+cd "$ALT_ROOT/Alternix" || { echo "ERROR: $ALT_ROOT not found"; exit 1; }
 
 
 
@@ -520,13 +520,13 @@ echo " "
 
 echo "[8/10] Building osm-settings..."
 
-cd "$ALT_ROOT/apps/osm-settings" || { echo "ERROR: apps/osm-settings folder missing"; exit 1; }
+cd "$ALT_ROOT/Alternix/apps/osm-settings" || { echo "ERROR: apps/osm-settings folder missing"; exit 1; }
 
 g++ osm-settings.cpp -o osm-settings -fPIC -ldl $(pkg-config --cflags --libs Qt5Widgets)
 chmod +x osm-settings && sudo mv osm-settings /usr/local/bin/
 
-if [ -f "$ALT_ROOT/icons/osm-settings.png" ]; then
-    sudo cp "$ALT_ROOT/icons/osm-settings.png" /usr/share/icons/hicolor/64x64/apps/osm-settings.png
+if [ -f "$ALT_ROOT/Alternix/icons/osm-settings.png" ]; then
+    sudo cp "$ALT_ROOT/Alternix/icons/osm-settings.png" /usr/share/icons/hicolor/64x64/apps/osm-settings.png
 fi
 
 cat <<EOF > "$HOME/.local/share/applications/osm-settings.desktop"
@@ -605,7 +605,7 @@ sudo mv system.so /usr/local/bin/
 #────────────────────────────────────────────────
 echo " "
 
-cd "$ALT_ROOT"
+cd "$ALT_ROOT/Alternix"
 sudo cp icons/update.png /usr/share/icons/hicolor/64x64/apps/update.png
 sudo cp icons/upgrade.png /usr/share/icons/hicolor/64x64/apps/upgrade.png
 
@@ -659,8 +659,8 @@ mkdir -p "$APP_DIR"
 
 # Optional: install an icon (replace if you have your own)
 YOUTUBE_ICON="/usr/share/icons/hicolor/256x256/apps/youtube.png"
-if [ -f "$ALT_ROOT/icons/youtube.png" ]; then
-    sudo cp "$ALT_ROOT/icons/youtube.png" "$YOUTUBE_ICON"
+if [ -f "$ALT_ROOT/Alternix/icons/youtube.png" ]; then
+    sudo cp "$ALT_ROOT/Alternix/icons/youtube.png" "$YOUTUBE_ICON"
 fi
 
 cat <<EOF > "$APP_DIR/youtube-webapp.desktop"
@@ -678,11 +678,6 @@ StartupNotify=true
 EOF
 
 chmod +x "$APP_DIR/youtube-webapp.desktop"
-
-# Rebuild desktop database if available
-if command -v update-desktop-database >/dev/null 2>&1; then
-    update-desktop-database "$HOME/.local/share/applications" || true
-fi
 
 echo "• YouTube WebApp installed."
 
@@ -710,11 +705,6 @@ StartupNotify=true
 EOF
 
 chmod +x "$HOME/.local/share/applications/alternitech-forums.desktop"
-
-# Refresh desktop database
-if command -v update-desktop-database >/dev/null 2>&1; then
-    update-desktop-database "$HOME/.local/share/applications" || true
-fi
 
 echo "• Alternitech Forums WebApp installed."
 
@@ -990,7 +980,6 @@ rm -rf "$ALT_ROOT"
 # ────────────────────────────────────────────────
 echo " "
 
-
 cd $HOME
 git clone https://github.com/hashirsajid58200p/forest-dawn-grub-theme.git
 cd forest-dawn-grub-theme
@@ -1003,12 +992,11 @@ sudo update-grub
 # ────────────────────────────────────────────────
 echo " "
 
-
 echo "- Installing auto-cpufreq..."
 cd $HOME
 git clone https://github.com/AdnanHodzic/auto-cpufreq.git
-cd auto-cpufreq && sudo ./auto-cpufreq-installer
-echo "i"
+cd auto-cpufreq
+sudo ./auto-cpufreq-installer
 sudo auto-cpufreq --install
 
 # ────────────────────────────────────────────────
