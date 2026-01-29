@@ -1022,26 +1022,5 @@ echo "=============================================="
 echo "Everything installed to /usr/local/bin/"
 echo "Autologin + startx enabled for user: $TARGET_USER"
 echo ".xinitrc configured for Qtile."
-echo "Reboot to enter Alternix automatically."
-echo ""
-echo "Press 1 to Restart"
-echo "Press 2 to Continue to Shell"
-echo ""
-
-while true; do
-    read -n 1 -s -r KEY
-    if [[ "$KEY" == "1" ]]; then
-        echo ""
-        echo "Restarting system..."
-        sleep 1
-        sudo reboot
-        break
-    elif [[ "$KEY" == "2" ]]; then
-        echo ""
-        echo "Continuing to shell..."
-        break
-    else
-        echo ""
-        echo "Invalid choice. Press 1 to Restart or 2 to Exit to Shell."
-    fi
-done
+echo "Rebooting to Alternix."
+sudo reboot now
