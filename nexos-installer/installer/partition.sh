@@ -232,8 +232,13 @@ _do_guided_partition() {
         PART_ROOT="${TARGET_DISK}${part_n}"
     fi
 
-    # NVMe partitions use p1/p2 suffix notation
-    if [[ "$TARGET_DISK" == *"nvme"* ]]; then
+    # NVMe AND eMMC (mmcblk) — and loop devices — use p1/p2 suffix
+    # notation, not plain concatenation. eMMC is the common storage on
+    # Atom-based tablets (ElitePad, Linx 810b, etc.) — without this,
+    # PART_ROOT etc. point at a device node that doesn't exist, mkfs/mount
+    # silently fail, and the install ends up writing into the live
+    # overlay's tmpfs instead of the real disk. DO NOT REMOVE.
+    if [[ "$TARGET_DISK" == *"nvme"* || "$TARGET_DISK" == *"mmcblk"* || "$TARGET_DISK" == *"loop"* ]]; then
         [[ -n "$PART_EFI"  ]] && PART_EFI="${TARGET_DISK}p${PART_EFI##${TARGET_DISK}}"
         [[ -n "$PART_BOOT" ]] && PART_BOOT="${TARGET_DISK}p${PART_BOOT##${TARGET_DISK}}"
         [[ -n "$PART_SWAP" ]] && PART_SWAP="${TARGET_DISK}p${PART_SWAP##${TARGET_DISK}}"
@@ -318,7 +323,10 @@ _format_partitions() {
     fi
 
     spin_start "Formatting /     (${PART_ROOT})..."
-    mkfs.ext4 -F "$PART_ROOT" &>/dev/null
+    if ! mkfs.ext4 -F "$PART_ROOT" &>/dev/null; then
+        spin_stop
+        die "Failed to format root partition ${PART_ROOT} — does that device exist? (check partition naming for this disk type)"
+    fi
     spin_stop; ok "/ formatted."
 
     if [[ -n "$PART_SWAP" ]]; then
@@ -341,7 +349,18 @@ mount_partitions() {
     section "Mounting"
     mkdir -p "$mnt"
 
-    mount "$PART_ROOT" "$mnt"
+    # MOUNT CHECK — DO NOT REMOVE
+    # If this silently fails, ${mnt} stays a plain directory on the live
+    # overlay (RAM), and everything installed after this point — base
+    # system, desktop, seL4 — gets written into RAM instead of disk,
+    # filling the overlay and failing with "No space left on device"
+    # partway through, far from the real cause.
+    if ! mount "$PART_ROOT" "$mnt"; then
+        die "Failed to mount root partition ${PART_ROOT} at ${mnt}. Aborting before anything gets written to the live overlay."
+    fi
+    if ! mountpoint -q "$mnt"; then
+        die "${mnt} does not appear to be a real mountpoint after mount — refusing to continue."
+    fi
     ok "Mounted / → ${mnt}"
 
     if [[ -n "$PART_BOOT" ]]; then

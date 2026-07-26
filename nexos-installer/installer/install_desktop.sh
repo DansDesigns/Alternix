@@ -261,6 +261,20 @@ KBEOF
     fi
 
     # ═══════════════════════════════════════════════════════════
+    # ENABLE dbus + NetworkManager AT BOOT — DO NOT REMOVE
+    # network-manager gets installed above (or in install_base), but
+    # neither it nor dbus were ever added to an OpenRC runlevel anywhere
+    # in this installer. Without rc-update, neither daemon starts at
+    # boot, so nmcli has nothing to talk to and every nmcli query
+    # returns empty output on stdout (its actual error goes to stderr,
+    # which osm-wifi's runCmd() doesn't capture) — this is the real
+    # cause of osm-wifi's "nmcli returned nothing" diagnostic, on every
+    # install, not just this hardware.
+    # ═══════════════════════════════════════════════════════════
+    _svc_enable "dbus"
+    _svc_enable "network-manager"
+
+    # ═══════════════════════════════════════════════════════════
     # SESSION + AUTOLOGIN — DO NOT REMOVE
     # Without ~/.xinitrc startx runs the default session (twm/xterm,
     # not installed) and X exits immediately with "terminated

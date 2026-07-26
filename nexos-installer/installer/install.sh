@@ -153,10 +153,15 @@ _show_logs() {
     {
         echo "=== /tmp/nexos-install.log ==="
         cat /tmp/nexos-install.log 2>/dev/null || echo "(no install log)"
-        if [ -s /tmp/sel4-cmake.log ]; then
+        # seL4 build log now lives on the target disk (NEXOS_MOUNT), not
+        # the live overlay's /tmp — see build_sel4.sh. Fall back to the
+        # old /tmp path too, in case this runs before NEXOS_MOUNT is set.
+        local sel4log="${NEXOS_MOUNT:-}/tmp/sel4-cmake.log"
+        [[ -s "$sel4log" ]] || sel4log="/tmp/sel4-cmake.log"
+        if [ -s "$sel4log" ]; then
             echo ""
-            echo "=== /tmp/sel4-cmake.log ==="
-            cat /tmp/sel4-cmake.log
+            echo "=== ${sel4log} ==="
+            cat "$sel4log"
         fi
     } > "$tmp"
     _nexos_pager "$tmp"

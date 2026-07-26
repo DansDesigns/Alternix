@@ -5,12 +5,23 @@
 
 SEL4_VERSION="HEAD"
 SEL4_REPO="https://github.com/seL4/seL4.git"
-SEL4_BUILD_DIR="/tmp/sel4-build"
+# BUILD DIR ON TARGET DISK — DO NOT REVERT TO /tmp
+# /tmp on the live environment is a RAM-backed tmpfs overlay (default
+# ~50% of physical RAM, per live-boot). A full seL4 clone + cmake + ninja
+# build easily fills that on low-RAM tablets (e.g. Atom-based devices
+# with ~4GB RAM -> ~1.9GB overlay), causing "No space left on device"
+# mid-build even though the target disk has plenty of room. Building
+# directly on NEXOS_MOUNT keeps it on the real disk instead.
+SEL4_BUILD_DIR="${NEXOS_MOUNT}/tmp/sel4-build"
 SEL4_INSTALL_DIR="${NEXOS_MOUNT}/opt/sel4"
-SEL4_LOG="/tmp/sel4-cmake.log"
+SEL4_LOG="${NEXOS_MOUNT}/tmp/sel4-cmake.log"
 
 build_sel4() {
     section "seL4 Microkernel"
+
+    # SEL4_LOG and SEL4_BUILD_DIR now live under NEXOS_MOUNT (target disk,
+    # not the live RAM overlay) — make sure the directory exists first.
+    mkdir -p "${NEXOS_MOUNT}/tmp"
 
     echo -e "  ${D}Arch:${N}  ${W}${HW_ARCH}${N}"
     echo -e "  ${D}Log:${N}   ${W}${SEL4_LOG}${N}"

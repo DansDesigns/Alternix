@@ -124,6 +124,31 @@ _chroot() {
     chroot "$NEXOS_MOUNT" /bin/bash -c "$*"
 }
 
+# SERVICE ENABLE/DISABLE — DO NOT REMOVE OR SIMPLIFY
+# Two compounding bugs fixed here:
+#  1) The Devuan/Debian network-manager package's init script is
+#     /etc/init.d/network-manager (lowercase, hyphenated) — NOT
+#     "NetworkManager" (that's the systemd unit name). rc-update was
+#     being told to manage a service name that doesn't exist, so it
+#     silently did nothing even under a genuinely-running OpenRC.
+#  2) This installer installs BOTH sysvinit-core and openrc, so
+#     rc-update (OpenRC-only) may not exist at all on a given
+#     machine's actual init. Try both tools; whichever exists wins.
+# Defined at top level (not nested in a function) so it's available
+# regardless of which function calls it first.
+_svc_enable() {
+    local svc="$1"
+    _chroot "command -v rc-update >/dev/null 2>&1 && rc-update add ${svc} default; \
+             command -v update-rc.d >/dev/null 2>&1 && update-rc.d ${svc} defaults; \
+             true" &>/dev/null
+}
+_svc_disable() {
+    local svc="$1"
+    _chroot "command -v rc-update >/dev/null 2>&1 && rc-update del ${svc} default; \
+             command -v update-rc.d >/dev/null 2>&1 && update-rc.d -f ${svc} remove; \
+             true" &>/dev/null
+}
+
 _configure_hostname() {
     echo "$NEXOS_HOSTNAME" > "${NEXOS_MOUNT}/etc/hostname"
     cat > "${NEXOS_MOUNT}/etc/hosts" << EOF
@@ -366,12 +391,10 @@ EOF
     _chroot "apt-get install -y ntpsec-ntpdate" 2>>"$NEXOS_LOG" ||         _chroot "apt-get install -y ntpdate" 2>>"$NEXOS_LOG" || true
     hwclock --systohc 2>/dev/null || true
 
-    # OpenRC: NetworkManager is the only network service at boot.
-    # dhcpcd/wpa_supplicant stay installed (used by the 'wifi' fallback)
-    # but must NOT run as services — they fight NM.
-    _chroot "rc-update del dhcpcd default" &>/dev/null || true
-    _chroot "rc-update del wpa_supplicant default" &>/dev/null || true
-    _chroot "rc-update add NetworkManager default" &>/dev/null || true
+    # SERVICE ENABLE/DISABLE — see _svc_enable/_svc_disable near _chroot()
+    _svc_disable "dhcpcd"
+    _svc_disable "wpasupplicant"
+    _svc_enable  "network-manager"
 
     ok "Network configured."
 }
@@ -455,7 +478,7 @@ _install_extra_packages() {
         2>&1 | tee -a "$NEXOS_LOG" || true
 
     # Enable NetworkManager for easy wifi management
-    _chroot "rc-update add NetworkManager default" &>/dev/null || true
+    _svc_enable "network-manager"
 
     # Unmount
     umount "${NEXOS_MOUNT}/dev/pts" 2>/dev/null || true

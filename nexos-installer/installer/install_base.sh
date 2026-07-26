@@ -171,14 +171,71 @@ EOF
         pkgs=("${pkgs[@]/grub-efi-amd64/grub-efi-arm64}")
     fi
 
-    _chroot "DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        --no-install-recommends ${pkgs[*]}" \
-        2>&1 | tee -a "$NEXOS_LOG" | while IFS= read -r line; do
-            [[ "$line" == *"Unpacking"* || "$line" == *"Setting up"* ]] && \
-                echo -e "  ${D}${line}${N}"
-        done
+    local apt_ok=0
+    for attempt in 1 2; do
+        _chroot "DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            --no-install-recommends ${pkgs[*]}" \
+            2>&1 | tee -a "$NEXOS_LOG" | while IFS= read -r line; do
+                [[ "$line" == *"Unpacking"* || "$line" == *"Setting up"* ]] && \
+                    echo -e "  ${D}${line}${N}"
+            done
+        # PIPESTATUS[0] is apt-get's real exit code — the pipeline's own
+        # $? would just be the while-loop's, which is not what we want.
+        if [[ ${PIPESTATUS[0]} -eq 0 ]]; then
+            apt_ok=1
+            break
+        fi
+        warn "apt-get install failed (attempt ${attempt}/2) — see ${NEXOS_LOG}"
+        [[ $attempt -eq 1 ]] && warn "Retrying once (known mirror flakiness)..."
+    done
 
-    ok "Core packages installed."
+    if [[ $apt_ok -eq 1 ]]; then
+        ok "Core packages installed."
+    else
+        err "Core packages FAILED to install after 2 attempts — check ${NEXOS_LOG}"
+    fi
+
+    # WIFI FIRMWARE VERIFICATION — DO NOT REMOVE
+    # apt can report success while an individual package's files still
+    # fail to extract (mirror hiccup, disk quirk, etc.) — this exact
+    # failure mode has hit both an ath10k (Qualcomm) machine and a brcm
+    # (Broadcom) machine on this project, on different installs, with
+    # apt reporting success both times. Rather than a blind check across
+    # every vendor's directory, use the hardware actually detected
+    # (detect_network_hardware, called from detect_hardware earlier) to
+    # verify — and if needed, specifically retry — the ONE package this
+    # machine actually needs.
+    if [[ "$HW_WIFI_CHIP" != "none" && -n "$HW_WIFI_CHIP" ]]; then
+        info "Detected WiFi: ${HW_WIFI_DESC} (${HW_WIFI_CHIP})"
+        local fw_missing=0
+        case "$HW_WIFI_CHIP" in
+            ath10k)  [[ -d "${NEXOS_MOUNT}/lib/firmware/ath10k" ]] || fw_missing=1 ;;
+            brcm)    [[ -d "${NEXOS_MOUNT}/lib/firmware/brcm"   ]] || fw_missing=1 ;;
+            iwlwifi) ls "${NEXOS_MOUNT}"/lib/firmware/iwlwifi-*.ucode &>/dev/null || fw_missing=1 ;;
+            realtek) [[ -d "${NEXOS_MOUNT}/lib/firmware/rtlwifi" || -d "${NEXOS_MOUNT}/lib/firmware/rtw88" ]] || fw_missing=1 ;;
+        esac
+
+        if [[ $fw_missing -eq 1 ]]; then
+            warn "Firmware for detected WiFi (${HW_WIFI_CHIP}) is missing — retrying ${HW_WIFI_FIRMWARE_PKGS[*]}..."
+            _chroot "DEBIAN_FRONTEND=noninteractive apt-get install --reinstall -y ${HW_WIFI_FIRMWARE_PKGS[*]}" \
+                2>&1 | tee -a "$NEXOS_LOG" >/dev/null
+            case "$HW_WIFI_CHIP" in
+                ath10k)  [[ -d "${NEXOS_MOUNT}/lib/firmware/ath10k" ]] && fw_missing=0 ;;
+                brcm)    [[ -d "${NEXOS_MOUNT}/lib/firmware/brcm"   ]] && fw_missing=0 ;;
+                iwlwifi) ls "${NEXOS_MOUNT}"/lib/firmware/iwlwifi-*.ucode &>/dev/null && fw_missing=0 ;;
+                realtek) { [[ -d "${NEXOS_MOUNT}/lib/firmware/rtlwifi" ]] || [[ -d "${NEXOS_MOUNT}/lib/firmware/rtw88" ]]; } && fw_missing=0 ;;
+            esac
+            if [[ $fw_missing -eq 1 ]]; then
+                err "Still missing after retry — WiFi will not work on this hardware without ${HW_WIFI_FIRMWARE_PKGS[*]}. Check ${NEXOS_LOG}."
+            else
+                ok "Firmware for ${HW_WIFI_CHIP} confirmed present after retry."
+            fi
+        else
+            ok "Firmware for ${HW_WIFI_CHIP} confirmed present."
+        fi
+    else
+        info "No WiFi hardware detected — skipping WiFi firmware verification."
+    fi
 
     # Show /boot contents for verification
     info "/boot contents:"
