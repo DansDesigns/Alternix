@@ -160,7 +160,7 @@ EOF
         "iproute2" "iputils-ping" "wget" "curl"
         "iw" "wireless-tools" "wpasupplicant" "dhcpcd5" "rfkill"
         "firmware-iwlwifi" "firmware-realtek" "firmware-atheros"
-        "firmware-brcm80211" "bluez-firmware"
+        "firmware-brcm80211" "bluez-firmware" "firmware-intel-sound"
         "e2fsprogs" "dosfstools" "parted"
         "ca-certificates" "locales" "tzdata"
         "sudo" "openssh-client" "nano" "htop" "pciutils"
