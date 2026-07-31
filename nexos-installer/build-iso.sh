@@ -292,6 +292,77 @@ chmod +x config/includes.chroot/installer/*.sh
 
 _ok "Installer scripts embedded."
 
+# ── Cursor themes (varlesh/oreo-cursors) ──────────────────────────
+# BUILT HERE ON THE BUILD HOST — NEVER ON THE TARGET.
+# The upstream build rasterises 156 SVGs at 2 sizes for each of the
+# 19 colour themes (5928 inkscape invocations, ~15 min on an i3) and
+# needs inkscape + ruby, roughly 700 MB of build dependencies. On an
+# Atom tablet mid-install that is hours of work and disk we do not
+# have, so the ISO ships the finished Xcursor themes and the
+# installer only has to unpack them.
+#
+# The result is cached in cursors-cache/ — OUTSIDE build/, which is
+# wiped at the top of this script — so repeat ISO builds are instant.
+_step "Building cursor themes"
+
+CURSOR_CACHE="${SCRIPT_DIR}/cursors-cache"
+CURSOR_TARBALL="${CURSOR_CACHE}/oreo-cursors.tar.gz"
+CURSOR_SRC="${CURSOR_CACHE}/oreo-cursors"
+
+if [[ "${NEXOS_SKIP_CURSORS:-0}" == "1" ]]; then
+    _info "NEXOS_SKIP_CURSORS=1 — skipping cursor themes."
+elif [[ -f "$CURSOR_TARBALL" ]]; then
+    _ok "Using cached cursor themes ($(du -h "$CURSOR_TARBALL" | cut -f1))."
+else
+    # Hard-fail on missing deps rather than quietly shipping an ISO
+    # with no cursors in it.
+    missing=""
+    for dep in git make ruby inkscape xcursorgen; do
+        command -v "$dep" >/dev/null 2>&1 || missing="${missing} ${dep}"
+    done
+    if [[ -n "$missing" ]]; then
+        _err "Cursor themes need these tools on the BUILD host:${missing}"
+        _err "Install them with:"
+        _err "    apt-get install -y git make ruby inkscape xcursorgen"
+        _die "Or re-run with NEXOS_SKIP_CURSORS=1 to build an ISO without them."
+    fi
+
+    mkdir -p "$CURSOR_CACHE"
+    if [[ ! -d "${CURSOR_SRC}/.git" ]]; then
+        _info "Cloning oreo-cursors..."
+        rm -rf "$CURSOR_SRC"
+        git clone --depth=1 https://github.com/varlesh/oreo-cursors.git \
+            "$CURSOR_SRC" >/dev/null 2>&1 \
+            || _die "Could not clone varlesh/oreo-cursors — check network."
+    fi
+
+    # convert.rb turns generator/colours.conf into src/oreo_<colour>_cursors/
+    _info "Generating theme sources (ruby)..."
+    ( cd "$CURSOR_SRC" && ruby generator/convert.rb ) >/dev/null \
+        || _die "oreo-cursors: ruby generator/convert.rb failed."
+
+    _info "Rasterising cursors — this takes 15+ min the first time..."
+    ( cd "$CURSOR_SRC" && bash build.sh ) >/dev/null 2>&1 \
+        || _die "oreo-cursors: build.sh failed (inkscape/xcursorgen)."
+
+    # || true: under 'set -euo pipefail' a failing find would abort the
+    # script here silently, bypassing the _die message immediately below.
+    CURSOR_COUNT="$(find "${CURSOR_SRC}/dist" -maxdepth 2 -name index.theme 2>/dev/null | wc -l || true)"
+    [[ "$CURSOR_COUNT" -gt 0 ]] \
+        || _die "oreo-cursors built but produced no themes in dist/."
+
+    # One tarball of all theme dirs; unpacks straight into /usr/share/icons
+    tar -czf "$CURSOR_TARBALL" -C "${CURSOR_SRC}/dist" . \
+        || _die "Could not pack cursor themes."
+    _ok "Built ${CURSOR_COUNT} cursor themes ($(du -h "$CURSOR_TARBALL" | cut -f1))."
+fi
+
+if [[ -f "$CURSOR_TARBALL" ]]; then
+    mkdir -p config/includes.chroot/usr/share/nexos/cursors
+    cp "$CURSOR_TARBALL" config/includes.chroot/usr/share/nexos/cursors/
+    _ok "Cursor themes embedded in the ISO."
+fi
+
 # ── live-boot package (required for boot=live to work) ────────────
 # Add to package list
 echo "live-boot" >> config/package-lists/nexos-installer.list.chroot
