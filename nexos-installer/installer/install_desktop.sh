@@ -109,13 +109,6 @@ PRCEOF
                   install_desktop ;;
     esac
 
-    # Cursor themes — every GUI desktop gets them; CLI has no X server.
-    # Never allowed to abort the install: a missing cursor theme is
-    # cosmetic, and err() above already counts it as a real error.
-    if [[ "$NEXOS_DESKTOP" != "cli" ]]; then
-        _install_cursor_themes || true
-    fi
-
     # Repair anything left half-configured, then restore invoke-rc.d
     _chroot "dpkg --configure -a" 2>&1 | tee -a "$NEXOS_LOG" || true
     rm -f "${NEXOS_MOUNT}/usr/sbin/invoke-rc.d"
@@ -145,44 +138,6 @@ _install_xbase() {
 
 _chroot() {
     chroot "$NEXOS_MOUNT" /bin/bash -c "$*"
-}
-
-# ── Cursor themes ─────────────────────────────────────────────────
-# The ISO carries oreo-cursors PRE-BUILT (see the "Building cursor
-# themes" stage in build-iso.sh) — nothing is rasterised here. On an
-# Atom tablet the upstream inkscape build would take hours, so all we
-# do is unpack finished Xcursor themes into /usr/share/icons.
-# osm-settings' UI page picks them up by scanning that folder.
-_install_cursor_themes() {
-    local src="/usr/share/nexos/cursors/oreo-cursors.tar.gz"
-
-    if [[ ! -f "$src" ]]; then
-        warn "No cursor themes on this ISO (${src} missing)."
-        warn "Settings → UI will only offer whatever themes the desktop ships."
-        return 0
-    fi
-
-    info "Installing cursor themes..."
-    mkdir -p "${NEXOS_MOUNT}/usr/share/icons"
-    # No pipe to tee here on purpose — a pipeline's $? is tee's, not
-    # tar's, and this needs tar's real exit code.
-    if ! tar -xzf "$src" -C "${NEXOS_MOUNT}/usr/share/icons" 2>>"$NEXOS_LOG"; then
-        err "Failed to unpack ${src} into the target."
-        err "Settings → UI will show no Oreo cursor themes."
-        return 1
-    fi
-
-    # unzip is only needed for the "Install from Archive" button in
-    # Settings → UI; tar covers every other archive format on its own.
-    # Not fatal if it fails — .zip themes just won't unpack.
-    _chroot "DEBIAN_FRONTEND=noninteractive apt-get install -y unzip" \
-        &>>"$NEXOS_LOG" || \
-        warn "unzip could not be installed — .zip cursor themes won't import."
-
-    local n
-    n="$(find "${NEXOS_MOUNT}/usr/share/icons" -mindepth 2 -maxdepth 2 \
-         -type d -name cursors 2>/dev/null | wc -l)"
-    ok "Cursor themes installed (${n} available in Settings → UI)."
 }
 
 # ── Alternix ──────────────────────────────────────────────────────

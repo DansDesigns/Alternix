@@ -5,21 +5,28 @@
 # cp -r /mnt/[DRIVE]/[FOLDER-PATH]/NexOS/nexos-installer
 
 # 1. Type the following lines into Debian WSL2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 cd ~
+
 # remove folder if it already exists:
 sudo rm -rf ~/nexos-installer
 
 # copy installer folder from Windows file system to Debian WSL2:
 cp -r /mnt/c/Users/dan/github/NexOS/nexos-installer ~/nexos-installer
 
+
 cd ~/nexos-installer
+
 sudo bash build-iso.sh
 
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # (future upgrade) specific build flags:
 sudo bash build-iso.sh --arm    # ARM64
 sudo bash build-iso.sh --amd    # AMD64 
+
 
 
 # 2. ISO appears in ~/nexos-installer/
