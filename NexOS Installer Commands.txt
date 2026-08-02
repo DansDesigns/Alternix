@@ -4,16 +4,16 @@
 # to change the location of NexOS folder, change the line:
 # cp -r /mnt/[DRIVE]/[FOLDER-PATH]/NexOS/nexos-installer
 
-# 1. Type the following lines into Debian WSL2
+# 1. Type the following lines into Debian WSL2:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 cd ~
 
-# remove folder if it already exists:
+# remove folder if it already exists (if re-building):
 sudo rm -rf ~/nexos-installer
 
-# copy installer folder from Windows file system to Debian WSL2 (replace "dan" with your username):
+# copy installer folder from Windows file system to Debian WSL2 (replace "Users/dan/github" with your username & folder location):
 cp -r /mnt/c/Users/dan/github/NexOS/nexos-installer ~/nexos-installer
 
 
@@ -32,7 +32,7 @@ sudo bash build-iso.sh --amd    # AMD64
 # 2. ISO appears in ~/nexos-installer/
 
 
-# 3. Copy it back to windows file system when done:
+# 3. Copy it back to windows file system when done (replace "dan/github" with your username & folder location):
 
 cp ~/nexos-installer/nexos-installer.iso /mnt/c/Users/dan/github/NexOS/
 
