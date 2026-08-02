@@ -110,7 +110,7 @@ nexos-installer/
 
 - **WiFi:** type `wifi` for the connection TUI (or use `nmtui`)
 - **Packages:** `sudo nala install <package>` (or `apt-get`)
-- **System info:** `fastfetch`
+- **System info:** `fetch`
 - **seL4:** installed at `/opt/sel4/` (kernel.elf, headers, VERSION)
 
 ### Troubleshooting
