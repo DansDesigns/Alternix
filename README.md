@@ -67,7 +67,7 @@ When it finishes, remove the USB and reboot straight into the desktop.
 Build on Devuan/Debian/WSL2 Debian:
 
 ```bash
-git clone https://github.com/DansDesigns/Alternix
+git clone https://github.com/DansDesigns/AlternixOS
 cd alternix-installer
 
 # Optional: add your own GRUB background
