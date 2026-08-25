@@ -12,9 +12,11 @@ optimised for your exact CPU (`-march=native`), and installs it to
 ## Features
 
 - **No systemd.** Devuan base with sysvinit/OpenRC. Clean, transparent init.
-- **seL4 microkernel** — formally verified microkernel, compiled natively for
-  your hardware at install time.
-- **Net installer** — small ISO, always installs the latest packages.
+- **seL4 microkernel** formally verified microkernel, compiled natively for your hardware at install time. (WIP)
+- **Net installer** small ISO, always installs the latest packages.
+- **Integrated Multi-System Emulation** Android & Windows native support with additional retro systems via RetroDeck. (WIP)
+- **Animated Fetch** use `fetch` command to dsplay system stats in the terminal.
+- **Visor UEFI Boot Manager** beautiful touch friendly UEFI interface.
 
 ---
 
