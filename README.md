@@ -1,8 +1,8 @@
-# NexOS
+# Alternix 
 
-NexOS is a custom, systemd-free Linux operating system built on Devuan
+A custom, systemd-free Linux operating system built on Devuan
 GNU/Linux, designed as the foundation for the
-[Alternix](https://github.com/DansDesigns/Alternix) desktop environment.
+[AlternixDE](https://github.com/DansDesigns/AlternixDE) desktop environment.
 It incorporates the seL4 microkernel from source during installation,
 optimised for your exact CPU (`-march=native`), and installs it to
 `/opt/sel4/`.
@@ -31,13 +31,13 @@ optimised for your exact CPU (`-march=native`), and installs it to
 
 ### 1. Get the ISO
 
-Either download a release ISO ([here](https://github.com/DansDesigns/NexOS/releases)), or build it yourself (see *Building the ISO*).
+Either download a release ISO ([here](https://github.com/DansDesigns/Alternix/releases)), or build it yourself (see *Building the ISO*).
 
 ### 2. Write it to a USB stick
 
 **Linux:**
 ```bash
-sudo dd if=nexos-installer.iso of=/dev/sdX bs=4M status=progress
+sudo dd if=alternix-installer.iso of=/dev/sdX bs=4M status=progress
 sudo sync
 ```
 
@@ -67,8 +67,8 @@ When it finishes, remove the USB and reboot straight into the desktop.
 Build on Devuan/Debian/WSL2 Debian:
 
 ```bash
-git clone https://github.com/DansDesigns/NexOS
-cd nexos-installer
+git clone https://github.com/DansDesigns/Alternix
+cd alternix-installer
 
 # Optional: add your own GRUB background
 cp your-image.png branding/grub-background.png
@@ -76,7 +76,7 @@ cp your-image.png branding/grub-background.png
 sudo bash build-iso.sh
 ```
 
-Output: `nexos-installer.iso` — hybrid ISO, bootable on BIOS and UEFI, writable
+Output: `alternix-installer.iso` — hybrid ISO, bootable on BIOS and UEFI, writable
 with dd, Rufus, or Etcher.
 
 Build dependencies (installed automatically if missing): `live-build`,
@@ -88,7 +88,7 @@ Build dependencies (installed automatically if missing): `live-build`,
 ## Repository layout
 
 ```
-nexos-installer/
+alternix-installer/
 ├── build-iso.sh              # ISO builder (run on host)
 ├── branding/
 │   └── grub-background.png   # optional GRUB background (ISO + installed system)
@@ -115,7 +115,7 @@ nexos-installer/
 
 ### Troubleshooting
 
-The installer keeps full logs at `/tmp/nexos-install.log` (viewable from the
+The installer keeps full logs at `/tmp/alternix-install.log` (viewable from the
 installer's menu via *View logs*, or from the shell). If anything fails during
 installation, the error stays on screen with a menu: restart, drop to shell,
 view logs, reboot, or shutdown. From the shell, type `install` to restart the
