@@ -27,7 +27,7 @@ optimised for your exact CPU (`-march=native`), and installs it to
 
 ---
 
-## Installing NexOS
+## Installing AlternixOS
 
 ### 1. Get the ISO
 
