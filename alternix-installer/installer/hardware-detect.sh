@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-# hardware-detect.sh — NexOS Hardware Detection
+# hardware-detect.sh — Alternix Hardware Detection
 # Detects arch, RAM, CPU, GPU
 # ═══════════════════════════════════════════════════════════════
 

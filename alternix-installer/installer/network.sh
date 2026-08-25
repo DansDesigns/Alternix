@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-# network.sh — NexOS Installer Network Setup
+# network.sh — Alternix Installer Network Setup
 # Handles ethernet (auto DHCP) and WiFi (TUI scan + connect)
 # ═══════════════════════════════════════════════════════════════
 

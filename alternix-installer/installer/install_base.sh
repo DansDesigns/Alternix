@@ -1,10 +1,10 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-# install_base.sh — NexOS Base System Installation
+# install_base.sh — Alternix Base System Installation
 # Debootstraps Devuan, installs kernel, sets up OpenRC
 # ═══════════════════════════════════════════════════════════════
 
-NEXOS_MOUNT="/mnt/nexos"
+ALTERNIX_MOUNT="/mnt/alternix"
 DEVUAN_MIRROR="http://deb.devuan.org/merged"
 DEVUAN_SUITE="excalibur"   # Devuan 5 (Debian 12 base)
 
@@ -37,7 +37,7 @@ install_base() {
         --arch="${deb_arch}" \
         --include="bash,ca-certificates,wget" \
         "$DEVUAN_SUITE" \
-        "$NEXOS_MOUNT" \
+        "$ALTERNIX_MOUNT" \
         "$DEVUAN_MIRROR" ; then
         die "debootstrap failed."
     fi
@@ -69,23 +69,23 @@ install_base() {
 }
 
 _bind_mounts() {
-    mount --bind /dev  "${NEXOS_MOUNT}/dev"
-    mount --bind /proc "${NEXOS_MOUNT}/proc"
-    mount --bind /sys  "${NEXOS_MOUNT}/sys"
-    mount --bind /run  "${NEXOS_MOUNT}/run"  2>/dev/null || true
+    mount --bind /dev  "${ALTERNIX_MOUNT}/dev"
+    mount --bind /proc "${ALTERNIX_MOUNT}/proc"
+    mount --bind /sys  "${ALTERNIX_MOUNT}/sys"
+    mount --bind /run  "${ALTERNIX_MOUNT}/run"  2>/dev/null || true
     # resolv.conf for chroot network access
-    cp /etc/resolv.conf "${NEXOS_MOUNT}/etc/resolv.conf"
+    cp /etc/resolv.conf "${ALTERNIX_MOUNT}/etc/resolv.conf"
 }
 
 _unbind_mounts() {
-    umount "${NEXOS_MOUNT}/dev"  2>/dev/null || true
-    umount "${NEXOS_MOUNT}/proc" 2>/dev/null || true
-    umount "${NEXOS_MOUNT}/sys"  2>/dev/null || true
-    umount "${NEXOS_MOUNT}/run"  2>/dev/null || true
+    umount "${ALTERNIX_MOUNT}/dev"  2>/dev/null || true
+    umount "${ALTERNIX_MOUNT}/proc" 2>/dev/null || true
+    umount "${ALTERNIX_MOUNT}/sys"  2>/dev/null || true
+    umount "${ALTERNIX_MOUNT}/run"  2>/dev/null || true
 }
 
 _write_sources() {
-    cat > "${NEXOS_MOUNT}/etc/apt/sources.list" << EOF
+    cat > "${ALTERNIX_MOUNT}/etc/apt/sources.list" << EOF
 deb ${DEVUAN_MIRROR} ${DEVUAN_SUITE} main contrib non-free non-free-firmware
 deb ${DEVUAN_MIRROR} ${DEVUAN_SUITE}-security main contrib non-free non-free-firmware
 deb ${DEVUAN_MIRROR} ${DEVUAN_SUITE}-updates main contrib non-free non-free-firmware
@@ -93,7 +93,7 @@ EOF
 }
 
 _chroot() {
-    chroot "$NEXOS_MOUNT" /bin/bash -c "$*"
+    chroot "$ALTERNIX_MOUNT" /bin/bash -c "$*"
 }
 
 _install_packages() {
@@ -104,47 +104,47 @@ _install_packages() {
     # Divert invoke-rc.d to a no-op stub for the whole install;
     # configure_system restores the original at the end.
     # ═══════════════════════════════════════════════════════════
-    chroot "$NEXOS_MOUNT" dpkg-divert --local --rename --quiet         --add /usr/sbin/invoke-rc.d 2>/dev/null || true
-    cat > "${NEXOS_MOUNT}/usr/sbin/invoke-rc.d" << 'EOF'
+    chroot "$ALTERNIX_MOUNT" dpkg-divert --local --rename --quiet         --add /usr/sbin/invoke-rc.d 2>/dev/null || true
+    cat > "${ALTERNIX_MOUNT}/usr/sbin/invoke-rc.d" << 'EOF'
 #!/bin/sh
 exit 0
 EOF
-    chmod +x "${NEXOS_MOUNT}/usr/sbin/invoke-rc.d"
+    chmod +x "${ALTERNIX_MOUNT}/usr/sbin/invoke-rc.d"
 
     # Prevent services starting in chroot
-    cat > "${NEXOS_MOUNT}/usr/sbin/policy-rc.d" << 'EOF'
+    cat > "${ALTERNIX_MOUNT}/usr/sbin/policy-rc.d" << 'EOF'
 #!/bin/sh
 exit 101
 EOF
-    chmod +x "${NEXOS_MOUNT}/usr/sbin/policy-rc.d"
+    chmod +x "${ALTERNIX_MOUNT}/usr/sbin/policy-rc.d"
 
-    cat > "${NEXOS_MOUNT}/usr/bin/systemctl" << 'EOF'
+    cat > "${ALTERNIX_MOUNT}/usr/bin/systemctl" << 'EOF'
 #!/bin/sh
 exit 0
 EOF
-    chmod +x "${NEXOS_MOUNT}/usr/bin/systemctl"
+    chmod +x "${ALTERNIX_MOUNT}/usr/bin/systemctl"
 
     step 3 5 "Installing kernel..."
     echo ""
 
     # Update apt inside chroot first
-    _chroot "apt-get update -qq" 2>&1 | tee -a "$NEXOS_LOG"
+    _chroot "apt-get update -qq" 2>&1 | tee -a "$ALTERNIX_LOG"
 
     # Install kernel FIRST and separately — most critical package
     info "Installing linux-image-amd64..."
     _chroot "DEBIAN_FRONTEND=noninteractive apt-get install -y linux-image-amd64 initramfs-tools" \
-        2>&1 | tee -a "$NEXOS_LOG" | while IFS= read -r line; do
+        2>&1 | tee -a "$ALTERNIX_LOG" | while IFS= read -r line; do
             echo -e "  ${D}${line}${N}"
         done
 
     # Verify kernel installed
-    if ls "${NEXOS_MOUNT}/boot/vmlinuz-"* &>/dev/null 2>&1; then
+    if ls "${ALTERNIX_MOUNT}/boot/vmlinuz-"* &>/dev/null 2>&1; then
         local kver
-        kver=$(ls "${NEXOS_MOUNT}/boot/vmlinuz-"* | sed -n '$p' | xargs basename)
+        kver=$(ls "${ALTERNIX_MOUNT}/boot/vmlinuz-"* | sed -n '$p' | xargs basename)
         ok "Kernel installed: ${kver}"
     else
         err "Kernel NOT installed — apt-get failed. Check network and apt sources."
-        err "Log: ${NEXOS_LOG}"
+        err "Log: ${ALTERNIX_LOG}"
         return 1
     fi
 
@@ -175,7 +175,7 @@ EOF
     for attempt in 1 2; do
         _chroot "DEBIAN_FRONTEND=noninteractive apt-get install -y \
             --no-install-recommends ${pkgs[*]}" \
-            2>&1 | tee -a "$NEXOS_LOG" | while IFS= read -r line; do
+            2>&1 | tee -a "$ALTERNIX_LOG" | while IFS= read -r line; do
                 [[ "$line" == *"Unpacking"* || "$line" == *"Setting up"* ]] && \
                     echo -e "  ${D}${line}${N}"
             done
@@ -185,14 +185,14 @@ EOF
             apt_ok=1
             break
         fi
-        warn "apt-get install failed (attempt ${attempt}/2) — see ${NEXOS_LOG}"
+        warn "apt-get install failed (attempt ${attempt}/2) — see ${ALTERNIX_LOG}"
         [[ $attempt -eq 1 ]] && warn "Retrying once (known mirror flakiness)..."
     done
 
     if [[ $apt_ok -eq 1 ]]; then
         ok "Core packages installed."
     else
-        err "Core packages FAILED to install after 2 attempts — check ${NEXOS_LOG}"
+        err "Core packages FAILED to install after 2 attempts — check ${ALTERNIX_LOG}"
     fi
 
     # WIFI FIRMWARE VERIFICATION — DO NOT REMOVE
@@ -209,24 +209,24 @@ EOF
         info "Detected WiFi: ${HW_WIFI_DESC} (${HW_WIFI_CHIP})"
         local fw_missing=0
         case "$HW_WIFI_CHIP" in
-            ath10k)  [[ -d "${NEXOS_MOUNT}/lib/firmware/ath10k" ]] || fw_missing=1 ;;
-            brcm)    [[ -d "${NEXOS_MOUNT}/lib/firmware/brcm"   ]] || fw_missing=1 ;;
-            iwlwifi) ls "${NEXOS_MOUNT}"/lib/firmware/iwlwifi-*.ucode &>/dev/null || fw_missing=1 ;;
-            realtek) [[ -d "${NEXOS_MOUNT}/lib/firmware/rtlwifi" || -d "${NEXOS_MOUNT}/lib/firmware/rtw88" ]] || fw_missing=1 ;;
+            ath10k)  [[ -d "${ALTERNIX_MOUNT}/lib/firmware/ath10k" ]] || fw_missing=1 ;;
+            brcm)    [[ -d "${ALTERNIX_MOUNT}/lib/firmware/brcm"   ]] || fw_missing=1 ;;
+            iwlwifi) ls "${ALTERNIX_MOUNT}"/lib/firmware/iwlwifi-*.ucode &>/dev/null || fw_missing=1 ;;
+            realtek) [[ -d "${ALTERNIX_MOUNT}/lib/firmware/rtlwifi" || -d "${ALTERNIX_MOUNT}/lib/firmware/rtw88" ]] || fw_missing=1 ;;
         esac
 
         if [[ $fw_missing -eq 1 ]]; then
             warn "Firmware for detected WiFi (${HW_WIFI_CHIP}) is missing — retrying ${HW_WIFI_FIRMWARE_PKGS[*]}..."
             _chroot "DEBIAN_FRONTEND=noninteractive apt-get install --reinstall -y ${HW_WIFI_FIRMWARE_PKGS[*]}" \
-                2>&1 | tee -a "$NEXOS_LOG" >/dev/null
+                2>&1 | tee -a "$ALTERNIX_LOG" >/dev/null
             case "$HW_WIFI_CHIP" in
-                ath10k)  [[ -d "${NEXOS_MOUNT}/lib/firmware/ath10k" ]] && fw_missing=0 ;;
-                brcm)    [[ -d "${NEXOS_MOUNT}/lib/firmware/brcm"   ]] && fw_missing=0 ;;
-                iwlwifi) ls "${NEXOS_MOUNT}"/lib/firmware/iwlwifi-*.ucode &>/dev/null && fw_missing=0 ;;
-                realtek) { [[ -d "${NEXOS_MOUNT}/lib/firmware/rtlwifi" ]] || [[ -d "${NEXOS_MOUNT}/lib/firmware/rtw88" ]]; } && fw_missing=0 ;;
+                ath10k)  [[ -d "${ALTERNIX_MOUNT}/lib/firmware/ath10k" ]] && fw_missing=0 ;;
+                brcm)    [[ -d "${ALTERNIX_MOUNT}/lib/firmware/brcm"   ]] && fw_missing=0 ;;
+                iwlwifi) ls "${ALTERNIX_MOUNT}"/lib/firmware/iwlwifi-*.ucode &>/dev/null && fw_missing=0 ;;
+                realtek) { [[ -d "${ALTERNIX_MOUNT}/lib/firmware/rtlwifi" ]] || [[ -d "${ALTERNIX_MOUNT}/lib/firmware/rtw88" ]]; } && fw_missing=0 ;;
             esac
             if [[ $fw_missing -eq 1 ]]; then
-                err "Still missing after retry — WiFi will not work on this hardware without ${HW_WIFI_FIRMWARE_PKGS[*]}. Check ${NEXOS_LOG}."
+                err "Still missing after retry — WiFi will not work on this hardware without ${HW_WIFI_FIRMWARE_PKGS[*]}. Check ${ALTERNIX_LOG}."
             else
                 ok "Firmware for ${HW_WIFI_CHIP} confirmed present after retry."
             fi
@@ -239,13 +239,13 @@ EOF
 
     # Show /boot contents for verification
     info "/boot contents:"
-    ls "${NEXOS_MOUNT}/boot/" 2>/dev/null | while IFS= read -r f; do info "  ${f}"; done
+    ls "${ALTERNIX_MOUNT}/boot/" 2>/dev/null | while IFS= read -r f; do info "  ${f}"; done
 }
 
 _setup_openrc() {
     # Remove policy-rc.d and systemctl stub
-    rm -f "${NEXOS_MOUNT}/usr/sbin/policy-rc.d"
-    rm -f "${NEXOS_MOUNT}/usr/bin/systemctl"
+    rm -f "${ALTERNIX_MOUNT}/usr/sbin/policy-rc.d"
+    rm -f "${ALTERNIX_MOUNT}/usr/bin/systemctl"
 
     # Enable essential services
     local services=(
@@ -280,24 +280,24 @@ _setup_openrc() {
 # Visor ships no ext4 driver, so kernel+initrd are copied to the ESP
 # under unversioned names, with a kernel hook to re-sync on updates.
 _install_visor() {
-    local esp="${NEXOS_MOUNT}/boot/efi"
+    local esp="${ALTERNIX_MOUNT}/boot/efi"
     local root_uuid="$1"
 
     info "Installing Visor boot manager..."
 
     # Build deps (gcc/make/git already in the live ISO)
-    apt-get install -y gnu-efi efibootmgr 2>>"$NEXOS_LOG" || true
+    apt-get install -y gnu-efi efibootmgr 2>>"$ALTERNIX_LOG" || true
 
     # Clone and build
     rm -rf /tmp/visor-build
     if ! git clone --depth=1 \
         https://github.com/IO-ZetZor/Visor-BootManager.git \
-        /tmp/visor-build 2>&1 | tee -a "$NEXOS_LOG"; then
+        /tmp/visor-build 2>&1 | tee -a "$ALTERNIX_LOG"; then
         warn "Visor clone failed."
         return 1
     fi
 
-    if ! (cd /tmp/visor-build && make) 2>&1 | tee -a "$NEXOS_LOG"; then
+    if ! (cd /tmp/visor-build && make) 2>&1 | tee -a "$ALTERNIX_LOG"; then
         warn "Visor build failed."
         return 1
     fi
@@ -308,7 +308,7 @@ _install_visor() {
     mkdir -p "${esp}/EFI/visor/icons" \
              "${esp}/EFI/visor/backgrounds" \
              "${esp}/EFI/visor/themes" \
-             "${esp}/EFI/nexos" \
+             "${esp}/EFI/alternix" \
              "${esp}/EFI/BOOT"
     cp /tmp/visor-build/visor_x64.efi "${esp}/EFI/visor/"
     cp /tmp/visor-build/assets/icons/*.png "${esp}/EFI/visor/icons/" 2>/dev/null || true
@@ -322,42 +322,42 @@ _install_visor() {
     for bg_src in /boot/grub/background.png \
                   "${INSTALLER_DIR}/../branding/grub-background.png"; do
         if [[ -f "$bg_src" ]]; then
-            cp "$bg_src" "${esp}/EFI/visor/backgrounds/nexos.png"
-            bg_line='background=\EFI\visor\backgrounds\nexos.png'
+            cp "$bg_src" "${esp}/EFI/visor/backgrounds/alternix.png"
+            bg_line='background=\EFI\visor\backgrounds\alternix.png'
             break
         fi
     done
 
     # Copy kernel + initrd to ESP with UNVERSIONED names
     local kernel initrd
-    kernel=$(ls "${NEXOS_MOUNT}/boot/vmlinuz-"* 2>/dev/null | sort | sed -n '$p')
-    initrd=$(ls "${NEXOS_MOUNT}/boot/initrd.img-"* 2>/dev/null | sort | sed -n '$p')
+    kernel=$(ls "${ALTERNIX_MOUNT}/boot/vmlinuz-"* 2>/dev/null | sort | sed -n '$p')
+    initrd=$(ls "${ALTERNIX_MOUNT}/boot/initrd.img-"* 2>/dev/null | sort | sed -n '$p')
     [[ -z "$kernel" || -z "$initrd" ]] && { warn "Kernel/initrd missing for Visor."; return 1; }
-    cp "$kernel" "${esp}/EFI/nexos/vmlinuz"
-    cp "$initrd" "${esp}/EFI/nexos/initrd.img"
+    cp "$kernel" "${esp}/EFI/alternix/vmlinuz"
+    cp "$initrd" "${esp}/EFI/alternix/initrd.img"
 
     # Write boot.conf
     cat > "${esp}/EFI/visor/boot.conf" << VISOREOF
 timeout=5
 default=0
-title=NexOS
+title=Alternix
 ${bg_line}
 
 linux {
-    name    = "NexOS"
+    name    = "Alternix"
     type    = linux
     icon    = \\EFI\\visor\\icons\\linux.png
-    kernel  = \\EFI\\nexos\\vmlinuz
-    initrd  = \\EFI\\nexos\\initrd.img
+    kernel  = \\EFI\\alternix\\vmlinuz
+    initrd  = \\EFI\\alternix\\initrd.img
     cmdline = "root=UUID=${root_uuid} ro quiet"
 }
 
 linux {
-    name    = "NexOS (recovery)"
+    name    = "Alternix (recovery)"
     type    = linux
     icon    = \\EFI\\visor\\icons\\linux.png
-    kernel  = \\EFI\\nexos\\vmlinuz
-    initrd  = \\EFI\\nexos\\initrd.img
+    kernel  = \\EFI\\alternix\\vmlinuz
+    initrd  = \\EFI\\alternix\\initrd.img
     cmdline = "root=UUID=${root_uuid} ro single"
 }
 VISOREOF
@@ -371,28 +371,28 @@ VISOREOF
             part_num=$(echo "$esp_part" | grep -o '[0-9]*$')
             efibootmgr --create --disk "$disk" --part "$part_num" \
                 --label "Visor" --loader '\EFI\visor\visor_x64.efi' \
-                2>&1 | tee -a "$NEXOS_LOG" || true
+                2>&1 | tee -a "$ALTERNIX_LOG" || true
         fi
     fi
 
     # Kernel-update hook in target: re-sync kernel/initrd to ESP
-    mkdir -p "${NEXOS_MOUNT}/etc/kernel/postinst.d"
-    cat > "${NEXOS_MOUNT}/etc/kernel/postinst.d/zz-visor-sync" << 'HOOKEOF'
+    mkdir -p "${ALTERNIX_MOUNT}/etc/kernel/postinst.d"
+    cat > "${ALTERNIX_MOUNT}/etc/kernel/postinst.d/zz-visor-sync" << 'HOOKEOF'
 #!/bin/sh
 # Sync newest kernel/initrd to the ESP for the Visor boot manager
 ESP=/boot/efi
-[ -d "$ESP/EFI/nexos" ] || exit 0
+[ -d "$ESP/EFI/alternix" ] || exit 0
 K=$(ls /boot/vmlinuz-* 2>/dev/null | sort | tail -1)
 I=$(ls /boot/initrd.img-* 2>/dev/null | sort | tail -1)
-[ -n "$K" ] && cp "$K" "$ESP/EFI/nexos/vmlinuz"
-[ -n "$I" ] && cp "$I" "$ESP/EFI/nexos/initrd.img"
+[ -n "$K" ] && cp "$K" "$ESP/EFI/alternix/vmlinuz"
+[ -n "$I" ] && cp "$I" "$ESP/EFI/alternix/initrd.img"
 exit 0
 HOOKEOF
-    chmod +x "${NEXOS_MOUNT}/etc/kernel/postinst.d/zz-visor-sync"
+    chmod +x "${ALTERNIX_MOUNT}/etc/kernel/postinst.d/zz-visor-sync"
     # initramfs updates too
-    mkdir -p "${NEXOS_MOUNT}/etc/initramfs/post-update.d"
-    cp "${NEXOS_MOUNT}/etc/kernel/postinst.d/zz-visor-sync" \
-       "${NEXOS_MOUNT}/etc/initramfs/post-update.d/zz-visor-sync"
+    mkdir -p "${ALTERNIX_MOUNT}/etc/initramfs/post-update.d"
+    cp "${ALTERNIX_MOUNT}/etc/kernel/postinst.d/zz-visor-sync" \
+       "${ALTERNIX_MOUNT}/etc/initramfs/post-update.d/zz-visor-sync"
 
     rm -rf /tmp/visor-build
     ok "Visor installed — graphical boot menu on next start."
@@ -418,7 +418,7 @@ _install_bootloader() {
     # Ensure grub-install is available
     if ! command -v grub-install &>/dev/null; then
         warn "grub-install not found — installing..."
-        apt-get install -y grub2-common grub-pc-bin grub-efi-amd64-bin 2>>"$NEXOS_LOG" || true
+        apt-get install -y grub2-common grub-pc-bin grub-efi-amd64-bin 2>>"$ALTERNIX_LOG" || true
     fi
 
     if ! command -v grub-install &>/dev/null; then
@@ -445,7 +445,7 @@ _install_bootloader() {
 
     if [[ $USE_EFI -eq 1 && $visor_ok -eq 0 ]]; then
         info "Running grub-install (EFI)..."
-        grub-install             --target=x86_64-efi             --efi-directory="${NEXOS_MOUNT}/boot/efi"             --boot-directory="${NEXOS_MOUNT}/boot"             --bootloader-id=NexOS             --recheck             --no-floppy             2>&1 | tee -a "$NEXOS_LOG"
+        grub-install             --target=x86_64-efi             --efi-directory="${ALTERNIX_MOUNT}/boot/efi"             --boot-directory="${ALTERNIX_MOUNT}/boot"             --bootloader-id=Alternix             --recheck             --no-floppy             2>&1 | tee -a "$ALTERNIX_LOG"
         local exit1=${PIPESTATUS[0]}
         if [[ $exit1 -ne 0 ]]; then
             warn "EFI grub-install failed (${exit1}) — trying BIOS fallback."
@@ -454,13 +454,13 @@ _install_bootloader() {
             ok "GRUB (EFI) installed."
             # Also install BIOS fallback MBR so machine boots even without EFI NVRAM entry
             info "Installing BIOS fallback MBR..."
-            grub-install                 --target=i386-pc                 --boot-directory="${NEXOS_MOUNT}/boot"                 --recheck                 --no-floppy                 "${TARGET_DISK}"                 2>&1 | tee -a "$NEXOS_LOG" || true
+            grub-install                 --target=i386-pc                 --boot-directory="${ALTERNIX_MOUNT}/boot"                 --recheck                 --no-floppy                 "${TARGET_DISK}"                 2>&1 | tee -a "$ALTERNIX_LOG" || true
             # Copy EFI bootloader to fallback path so UEFI finds it automatically
-            local efi_boot="${NEXOS_MOUNT}/boot/efi/EFI/BOOT"
-            local efi_nexos="${NEXOS_MOUNT}/boot/efi/EFI/NexOS"
+            local efi_boot="${ALTERNIX_MOUNT}/boot/efi/EFI/BOOT"
+            local efi_alternix="${ALTERNIX_MOUNT}/boot/efi/EFI/Alternix"
             mkdir -p "$efi_boot"
-            if [[ -f "${efi_nexos}/grubx64.efi" ]]; then
-                cp "${efi_nexos}/grubx64.efi" "${efi_boot}/BOOTX64.EFI"
+            if [[ -f "${efi_alternix}/grubx64.efi" ]]; then
+                cp "${efi_alternix}/grubx64.efi" "${efi_boot}/BOOTX64.EFI"
                 ok "EFI fallback bootloader copied to EFI/BOOT/BOOTX64.EFI"
             fi
         fi
@@ -470,11 +470,11 @@ _install_bootloader() {
         info "Running grub-install (BIOS) on ${TARGET_DISK}..."
         grub-install \
             --target=i386-pc \
-            --boot-directory="${NEXOS_MOUNT}/boot" \
+            --boot-directory="${ALTERNIX_MOUNT}/boot" \
             --recheck \
             --no-floppy \
             "${TARGET_DISK}" \
-            2>&1 | tee -a "$NEXOS_LOG"
+            2>&1 | tee -a "$ALTERNIX_LOG"
         local exit2=${PIPESTATUS[0]}
         if [[ $exit2 -ne 0 ]]; then
             err "BIOS grub-install failed (${exit2})."
@@ -486,16 +486,16 @@ _install_bootloader() {
     # Mount filesystems needed by update-grub
     info "Mounting filesystems for update-grub..."
     for fs in proc sys dev dev/pts; do
-        mkdir -p "${NEXOS_MOUNT}/${fs}"
-        mount --bind "/${fs}" "${NEXOS_MOUNT}/${fs}" 2>/dev/null || true
+        mkdir -p "${ALTERNIX_MOUNT}/${fs}"
+        mount --bind "/${fs}" "${ALTERNIX_MOUNT}/${fs}" 2>/dev/null || true
     done
 
     info "Running update-grub..."
-    _chroot "update-grub" 2>&1 | tee -a "$NEXOS_LOG"
+    _chroot "update-grub" 2>&1 | tee -a "$ALTERNIX_LOG"
 
     # Unmount
     for fs in dev/pts dev sys proc; do
-        umount "${NEXOS_MOUNT}/${fs}" 2>/dev/null || true
+        umount "${ALTERNIX_MOUNT}/${fs}" 2>/dev/null || true
     done
 
     # ═══════════════════════════════════════════════════════════
@@ -505,13 +505,13 @@ _install_bootloader() {
     # grub.cfg with a known-good config here.
     # ═══════════════════════════════════════════════════════════
     local kernel initrd root_uuid boot_uuid kernel_prefix
-    kernel=$(ls "${NEXOS_MOUNT}/boot/vmlinuz-"* 2>/dev/null | sort | sed -n '$p' | xargs basename 2>/dev/null)
-    initrd=$(ls "${NEXOS_MOUNT}/boot/initrd.img-"* 2>/dev/null | sort | sed -n '$p' | xargs basename 2>/dev/null)
+    kernel=$(ls "${ALTERNIX_MOUNT}/boot/vmlinuz-"* 2>/dev/null | sort | sed -n '$p' | xargs basename 2>/dev/null)
+    initrd=$(ls "${ALTERNIX_MOUNT}/boot/initrd.img-"* 2>/dev/null | sort | sed -n '$p' | xargs basename 2>/dev/null)
 
     if [[ -z "$kernel" ]]; then
-        err "NO KERNEL in ${NEXOS_MOUNT}/boot — system cannot boot!"
+        err "NO KERNEL in ${ALTERNIX_MOUNT}/boot — system cannot boot!"
         err "Contents of /boot:"
-        ls "${NEXOS_MOUNT}/boot/" | while IFS= read -r f; do err "  $f"; done
+        ls "${ALTERNIX_MOUNT}/boot/" | while IFS= read -r f; do err "  $f"; done
         return 1
     fi
 
@@ -528,19 +528,19 @@ _install_bootloader() {
 
     info "Writing grub.cfg  (kernel: ${kernel}, boot UUID: ${boot_uuid})"
 
-    mkdir -p "${NEXOS_MOUNT}/boot/grub"
+    mkdir -p "${ALTERNIX_MOUNT}/boot/grub"
 
     # GRUB BACKGROUND — copy from live env (ISO embeds it) or branding dir
     for bg_src in /boot/grub/background.png \
                   "${INSTALLER_DIR}/../branding/grub-background.png" \
                   /branding/grub-background.png; do
         if [[ -f "$bg_src" ]]; then
-            cp "$bg_src" "${NEXOS_MOUNT}/boot/grub/background.png"
+            cp "$bg_src" "${ALTERNIX_MOUNT}/boot/grub/background.png"
             ok "GRUB background installed."
             break
         fi
     done
-    cat > "${NEXOS_MOUNT}/boot/grub/grub.cfg" << GRUBEOF
+    cat > "${ALTERNIX_MOUNT}/boot/grub/grub.cfg" << GRUBEOF
 set default=0
 set timeout=5
 
@@ -553,13 +553,13 @@ if [ -e \${prefix}/background.png ]; then
     background_image \${prefix}/background.png
 fi
 
-menuentry "NexOS" {
+menuentry "Alternix" {
     search --no-floppy --fs-uuid --set=root ${boot_uuid}
     linux ${kernel_prefix}/${kernel} root=UUID=${root_uuid} ro quiet
     initrd ${kernel_prefix}/${initrd}
 }
 
-menuentry "NexOS (recovery)" {
+menuentry "Alternix (recovery)" {
     search --no-floppy --fs-uuid --set=root ${boot_uuid}
     linux ${kernel_prefix}/${kernel} root=UUID=${root_uuid} ro single
     initrd ${kernel_prefix}/${initrd}
@@ -571,7 +571,7 @@ GRUBEOF
 
     ok "Bootloader installation complete."
     info "grub.cfg first lines:"
-    head -8 "${NEXOS_MOUNT}/boot/grub/grub.cfg" | while IFS= read -r l; do
+    head -8 "${ALTERNIX_MOUNT}/boot/grub/grub.cfg" | while IFS= read -r l; do
         echo "    $l"
     done
 }

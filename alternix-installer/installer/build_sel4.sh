@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-# build_sel4.sh — NexOS seL4 Microkernel Build
+# build_sel4.sh — Alternix seL4 Microkernel Build
 # ═══════════════════════════════════════════════════════════════
 
 SEL4_VERSION="HEAD"
@@ -11,17 +11,17 @@ SEL4_REPO="https://github.com/seL4/seL4.git"
 # build easily fills that on low-RAM tablets (e.g. Atom-based devices
 # with ~4GB RAM -> ~1.9GB overlay), causing "No space left on device"
 # mid-build even though the target disk has plenty of room. Building
-# directly on NEXOS_MOUNT keeps it on the real disk instead.
-SEL4_BUILD_DIR="${NEXOS_MOUNT}/tmp/sel4-build"
-SEL4_INSTALL_DIR="${NEXOS_MOUNT}/opt/sel4"
-SEL4_LOG="${NEXOS_MOUNT}/tmp/sel4-cmake.log"
+# directly on ALTERNIX_MOUNT keeps it on the real disk instead.
+SEL4_BUILD_DIR="${ALTERNIX_MOUNT}/tmp/sel4-build"
+SEL4_INSTALL_DIR="${ALTERNIX_MOUNT}/opt/sel4"
+SEL4_LOG="${ALTERNIX_MOUNT}/tmp/sel4-cmake.log"
 
 build_sel4() {
     section "seL4 Microkernel"
 
-    # SEL4_LOG and SEL4_BUILD_DIR now live under NEXOS_MOUNT (target disk,
+    # SEL4_LOG and SEL4_BUILD_DIR now live under ALTERNIX_MOUNT (target disk,
     # not the live RAM overlay) — make sure the directory exists first.
-    mkdir -p "${NEXOS_MOUNT}/tmp"
+    mkdir -p "${ALTERNIX_MOUNT}/tmp"
 
     echo -e "  ${D}Arch:${N}  ${W}${HW_ARCH}${N}"
     echo -e "  ${D}Log:${N}   ${W}${SEL4_LOG}${N}"
@@ -209,7 +209,7 @@ _install_sel4() {
 
     cat > "${SEL4_INSTALL_DIR}/VERSION" << EOF
 seL4 ${SEL4_VERSION}
-Built by NexOS installer
+Built by Alternix installer
 Arch: ${HW_ARCH}
 Flags: $(get_compile_flags)
 EOF

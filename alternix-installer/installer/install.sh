@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-# install.sh — NexOS Net Installer
+# install.sh — Alternix Net Installer
 #
 # Flow:
 #   welcome → hardware → network → user config → disk →
@@ -15,59 +15,59 @@ set -uo pipefail
 # so a non-fatal warning doesn't kill the whole installer.
 
 # Check if user deliberately dropped to shell — do not restart
-if [[ -f /tmp/.nexos-shell-drop ]]; then
+if [[ -f /tmp/.alternix-shell-drop ]]; then
     # Stay silent — the shell is already running
     exit 0
 fi
 
 # Prevent re-entry if already running
-if [[ -f /tmp/.nexos-installer-running ]]; then
+if [[ -f /tmp/.alternix-installer-running ]]; then
     echo ""
     echo "Installer already ran. Type: install   to restart."
     exit 0
 fi
-touch /tmp/.nexos-installer-running
+touch /tmp/.alternix-installer-running
 
 # Easy restart alias — just type: install
 cat > /usr/local/bin/install << 'ALIAS'
 #!/bin/bash
-rm -f /tmp/.nexos-installer-running
+rm -f /tmp/.alternix-installer-running
 exec bash /installer/install.sh
 ALIAS
 chmod +x /usr/local/bin/install
 
 # Ctrl+C drops to shell cleanly — kill spinner then exit to shell
-trap '_nexos_interrupted' INT
+trap '_alternix_interrupted' INT
 
-_nexos_interrupted() {
+_alternix_interrupted() {
     spin_stop 2>/dev/null || true
     echo ""
     echo ""
     echo -e "  ${Y}Installer interrupted.${N}"
     echo -e "  Type ${W}install${N} to restart."
-    rm -f /tmp/.nexos-installer-running
+    rm -f /tmp/.alternix-installer-running
     trap - INT EXIT
     # Return to shell by ending this script without re-exec
     exit 0
 }
 
 INSTALLER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export NEXOS_MOUNT="/mnt/nexos"
-export NEXOS_LOG="/tmp/nexos-install.log"
+export ALTERNIX_MOUNT="/mnt/alternix"
+export ALTERNIX_LOG="/tmp/alternix-install.log"
 
 # Tee all output to log file so errors are never lost
-exec > >(tee -a "$NEXOS_LOG") 2>&1
-echo "=== NexOS Installer started $(date) ==="
+exec > >(tee -a "$ALTERNIX_LOG") 2>&1
+echo "=== Alternix Installer started $(date) ==="
 
 # Stop kernel messages (e.g. PCIe AER spam) flooding the installer TUI
 dmesg -n 1 2>/dev/null || true
 
 # Flag to suppress screen clear after errors
-NEXOS_ERROR_SHOWN=0
+ALTERNIX_ERROR_SHOWN=0
 
 # ── Source modules ────────────────────────────────────────────────
 source "${INSTALLER_DIR}/ui.sh"
-export NEXOS_ERROR_COUNT=0
+export ALTERNIX_ERROR_COUNT=0
 
 
 source "${INSTALLER_DIR}/hardware-detect.sh"
@@ -100,7 +100,7 @@ _show_menu() {
     echo ""
 }
 
-_nexos_pager() {
+_alternix_pager() {
     # Pure-bash scrollable pager — no less/more needed.
     # Use the whole screen: release the banner scroll region first.
     printf '\033[r' 
@@ -149,14 +149,14 @@ _nexos_pager() {
 }
 
 _show_logs() {
-    local tmp="/tmp/.nexos-logview"
+    local tmp="/tmp/.alternix-logview"
     {
-        echo "=== /tmp/nexos-install.log ==="
-        cat /tmp/nexos-install.log 2>/dev/null || echo "(no install log)"
-        # seL4 build log now lives on the target disk (NEXOS_MOUNT), not
+        echo "=== /tmp/alternix-install.log ==="
+        cat /tmp/alternix-install.log 2>/dev/null || echo "(no install log)"
+        # seL4 build log now lives on the target disk (ALTERNIX_MOUNT), not
         # the live overlay's /tmp — see build_sel4.sh. Fall back to the
-        # old /tmp path too, in case this runs before NEXOS_MOUNT is set.
-        local sel4log="${NEXOS_MOUNT:-}/tmp/sel4-cmake.log"
+        # old /tmp path too, in case this runs before ALTERNIX_MOUNT is set.
+        local sel4log="${ALTERNIX_MOUNT:-}/tmp/sel4-cmake.log"
         [[ -s "$sel4log" ]] || sel4log="/tmp/sel4-cmake.log"
         if [ -s "$sel4log" ]; then
             echo ""
@@ -164,15 +164,15 @@ _show_logs() {
             cat "$sel4log"
         fi
     } > "$tmp"
-    _nexos_pager "$tmp"
+    _alternix_pager "$tmp"
     rm -f "$tmp"
 }
 
 _on_exit() {
-    rm -f /tmp/.nexos-installer-running
+    rm -f /tmp/.alternix-installer-running
     local code=$?
     if [[ $code -ne 0 ]]; then
-        NEXOS_ERROR_SHOWN=1
+        ALTERNIX_ERROR_SHOWN=1
         spin_stop 2>/dev/null || true
         echo ""
         echo -e "\033[0;31m╔══════════════════════════════════════════════════╗\033[0m"
@@ -182,16 +182,16 @@ _on_exit() {
         err "Installer exited unexpectedly (code ${code})."
         echo ""
         # Show last 25 lines of log immediately on screen
-        if [[ -f "$NEXOS_LOG" ]]; then
+        if [[ -f "$ALTERNIX_LOG" ]]; then
             echo -e "  ${Y}=== Last 25 lines of install log ===${N}"
             echo ""
-            cat "$NEXOS_LOG" | while IFS= read -r l; do echo "  $l"; done
+            cat "$ALTERNIX_LOG" | while IFS= read -r l; do echo "  $l"; done
             echo ""
         fi
         info "Cleaning up mounts..."
         cleanup_mounts 2>/dev/null || true
         echo ""
-        echo -e "  ${T}Full log: ${NEXOS_LOG}${N}"
+        echo -e "  ${T}Full log: ${ALTERNIX_LOG}${N}"
         echo ""
 
         _show_menu
@@ -199,15 +199,15 @@ _on_exit() {
             echo -en "  ${W}Choice${N}: "
             IFS= read -r choice
             case "$choice" in
-                1) rm -f /tmp/.nexos-installer-running; exec bash /installer/install.sh ;;
-                2) rm -f /tmp/.nexos-installer-running
-                   touch /tmp/.nexos-shell-drop
+                1) rm -f /tmp/.alternix-installer-running; exec bash /installer/install.sh ;;
+                2) rm -f /tmp/.alternix-installer-running
+                   touch /tmp/.alternix-shell-drop
                    echo ""
-                   echo " NexOS Shell — type: install  to restart"
+                   echo " Alternix Shell — type: install  to restart"
                    echo ""
                    printf '\033[r'
-           env PS1="[nexos]: " /bin/bash --norc -i
-                   rm -f /tmp/.nexos-shell-drop
+           env PS1="[alternix]: " /bin/bash --norc -i
+                   rm -f /tmp/.alternix-shell-drop
                    exit 0 ;;
                 3) printf '\033[r'; sync; /sbin/poweroff -f ;;
                 4) printf '\033[r'; sync; /sbin/reboot -f ;;
@@ -240,7 +240,7 @@ banner
 select_font_size
 banner
 
-echo -e "  ${W}Welcome to NexOS.${N}"
+echo -e "  ${W}Welcome to Alternix.${N}"
 echo ""
 echo -e "  This installer will:"
 echo ""
@@ -271,8 +271,8 @@ if ! confirm "Begin installation?"; then
         echo -en "  ${W}Choice${N}: "
         IFS= read -r choice
         case "$choice" in
-            1) rm -f /tmp/.nexos-installer-running; exec bash /installer/install.sh ;;
-            2) rm -f /tmp/.nexos-installer-running
+            1) rm -f /tmp/.alternix-installer-running; exec bash /installer/install.sh ;;
+            2) rm -f /tmp/.alternix-installer-running
                echo -e "  Type ${W}install${N} to restart."
                trap - INT EXIT; exit 0 ;;
             3) printf '\033[r'; sync; /sbin/poweroff -f ;;
@@ -371,26 +371,26 @@ banner
 echo -e "  ${G}Installation complete.${N}"
 echo ""
 echo -e "  ${W}Installed to:${N}  ${TARGET_DISK}"
-echo -e "  ${W}Hostname:${N}      ${NEXOS_HOSTNAME}"
-echo -e "  ${W}User:${N}          ${NEXOS_USERNAME}"
+echo -e "  ${W}Hostname:${N}      ${ALTERNIX_HOSTNAME}"
+echo -e "  ${W}User:${N}          ${ALTERNIX_USERNAME}"
 echo -e "  ${W}Arch:${N}          ${HW_ARCH}"
 echo ""
 echo -e "  ${D}Remove the installation media and reboot.${N}"
 
 # Verify bootloader was installed
-if [[ -f "${NEXOS_MOUNT}/boot/grub/grub.cfg" ]]; then
+if [[ -f "${ALTERNIX_MOUNT}/boot/grub/grub.cfg" ]]; then
     ok "grub.cfg found — bootloader installed correctly."
 else
     warn "grub.cfg NOT found — system may not boot!"
-    warn "Check: ls ${NEXOS_MOUNT}/boot/"
-    ls "${NEXOS_MOUNT}/boot/" 2>/dev/null | while IFS= read -r f; do warn "  $f"; done
+    warn "Check: ls ${ALTERNIX_MOUNT}/boot/"
+    ls "${ALTERNIX_MOUNT}/boot/" 2>/dev/null | while IFS= read -r f; do warn "  $f"; done
 fi
 
 echo ""
 
 cleanup_mounts
 
-rm -f /tmp/.nexos-installer-running
+rm -f /tmp/.alternix-installer-running
 echo -e "  ${W}What would you like to do?${N}"
 echo ""
 echo -e "  ${T}1${N}  Reboot"
@@ -403,17 +403,17 @@ while true; do
     IFS= read -r choice
     case "$choice" in
         1) printf '\033[r'; sync; /sbin/reboot -f ;;
-        2) rm -f /tmp/.nexos-installer-running
-           touch /tmp/.nexos-shell-drop
+        2) rm -f /tmp/.alternix-installer-running
+           touch /tmp/.alternix-shell-drop
            echo ""
-           echo " NexOS Shell — type: install  to restart"
-           echo " System at: ${NEXOS_MOUNT}"
-           echo " Grub: ls ${NEXOS_MOUNT}/boot/grub/"
-           echo " Log:  cat /tmp/nexos-install.log"
+           echo " Alternix Shell — type: install  to restart"
+           echo " System at: ${ALTERNIX_MOUNT}"
+           echo " Grub: ls ${ALTERNIX_MOUNT}/boot/grub/"
+           echo " Log:  cat /tmp/alternix-install.log"
            echo ""
            printf '\033[r'
-           env PS1="[nexos]: " /bin/bash --norc -i
-           rm -f /tmp/.nexos-shell-drop
+           env PS1="[alternix]: " /bin/bash --norc -i
+           rm -f /tmp/.alternix-shell-drop
            exit 0 ;;
         3) _show_logs
            echo ""

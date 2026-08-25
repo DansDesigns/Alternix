@@ -1,19 +1,19 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-# build-iso.sh — NexOS Installer ISO Builder
+# build-iso.sh — Alternix Installer ISO Builder
 #
 # Builds a minimal Devuan live environment containing
-# the NexOS installer scripts. Uses live-build.
+# the Alternix installer scripts. Uses live-build.
 #
 # Run as root on a Devuan/Debian host.
-# Output: nexos-installer.iso
+# Output: alternix-installer.iso
 # ═══════════════════════════════════════════════════════════════
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="${SCRIPT_DIR}/build"
-OUTPUT_ISO="${SCRIPT_DIR}/nexos-installer.iso"
+OUTPUT_ISO="${SCRIPT_DIR}/alternix-installer.iso"
 
 # ── Colours (minimal, build-time only) ───────────────────────────
 _info()  { echo "  · $*"; }
@@ -86,13 +86,13 @@ lb config \
     --architectures "amd64" \
     --binary-images "iso-hybrid" \
     --bootloaders "grub-efi,grub-pc" \
-    --iso-application "NexOS Installer" \
+    --iso-application "Alternix Installer" \
     --zsync "false" \
     --uefi-secure-boot "disable" \
     --memtest "none" \
-    --iso-volume "NexOS-Installer" \
-    --iso-application "NexOS Net Installer" \
-    --iso-publisher "NexOS" \
+    --iso-volume "Alternix-Installer" \
+    --iso-application "Alternix Net Installer" \
+    --iso-publisher "Alternix" \
     --apt-indices "false" \
     --apt-recommends "false" \
     --debootstrap-options "--variant=minbase --keyring=${DEVUAN_KEYRING}"
@@ -141,7 +141,7 @@ Pin-Priority: -1
 PREFEOF
 
 # Block Rust coreutils (uutils) — GNU coreutils only.
-# The Rust rewrite still has behavioural breakage; NexOS stays on GNU.
+# The Rust rewrite still has behavioural breakage; Alternix stays on GNU.
 cat > config/includes.chroot/etc/apt/preferences.d/no-rust-coreutils << 'PREFEOF'
 Package: rust-coreutils rust-coreutils-* uutils-coreutils coreutils-from-uutils
 Pin: release *
@@ -157,7 +157,7 @@ _step "Writing package lists"
 
 mkdir -p config/package-lists
 
-cat > config/package-lists/nexos-installer.list.chroot << 'EOF'
+cat > config/package-lists/alternix-installer.list.chroot << 'EOF'
 # ── Init system (no systemd) ─────────────────────────────────────
 sysvinit-core
 openrc
@@ -294,14 +294,14 @@ _ok "Installer scripts embedded."
 
 # ── live-boot package (required for boot=live to work) ────────────
 # Add to package list
-echo "live-boot" >> config/package-lists/nexos-installer.list.chroot
-echo "live-boot-initramfs-tools" >> config/package-lists/nexos-installer.list.chroot
+echo "live-boot" >> config/package-lists/alternix-installer.list.chroot
+echo "live-boot-initramfs-tools" >> config/package-lists/alternix-installer.list.chroot
 # live-config intentionally excluded — it pulls in live-config-systemd on Devuan.
 # Autologin is handled by the profile.d script instead.
 
 # ── Kernel module pre-load hook ───────────────────────────────────
 mkdir -p config/hooks/normal
-cat > config/hooks/normal/0050-nexos-modules.hook.chroot << 'HOOKEOF'
+cat > config/hooks/normal/0050-alternix-modules.hook.chroot << 'HOOKEOF'
 #!/bin/bash
 set -e
 # Ensure critical modules are available in the live env
@@ -327,10 +327,10 @@ iwl6000g2b
 ath9k
 EOF
 HOOKEOF
-chmod +x config/hooks/normal/0050-nexos-modules.hook.chroot
+chmod +x config/hooks/normal/0050-alternix-modules.hook.chroot
 
 # ── Console keyboard hook ─────────────────────────────────────────
-cat > config/hooks/normal/0060-nexos-console.hook.chroot << 'HOOKEOF'
+cat > config/hooks/normal/0060-alternix-console.hook.chroot << 'HOOKEOF'
 #!/bin/bash
 set -e
 # Set default console keyboard layout
@@ -338,7 +338,7 @@ echo 'XKBLAYOUT="gb"' >> /etc/default/keyboard || true
 # Reconfigure console-setup if available
 dpkg-reconfigure -f noninteractive console-setup 2>/dev/null || true
 HOOKEOF
-chmod +x config/hooks/normal/0060-nexos-console.hook.chroot
+chmod +x config/hooks/normal/0060-alternix-console.hook.chroot
 
 # ── Auto-launch installer on boot ────────────────────────────────
 _step "Configuring auto-launch"
@@ -346,7 +346,7 @@ _step "Configuring auto-launch"
 # 1. Write inittab to autologin root on tty1 via a chroot hook
 #    (inittab exists in the chroot because we install sysvinit-core)
 mkdir -p config/hooks/normal
-cat > config/hooks/normal/0070-nexos-autologin.hook.chroot << 'HOOKEOF'
+cat > config/hooks/normal/0070-alternix-autologin.hook.chroot << 'HOOKEOF'
 #!/bin/bash
 # Replace tty1 getty with autologin getty
 if [ -f /etc/inittab ]; then
@@ -355,23 +355,23 @@ if [ -f /etc/inittab ]; then
     echo "1:2345:respawn:/sbin/agetty --autologin root --noclear tty1 38400 linux" >> /etc/inittab
 fi
 HOOKEOF
-chmod +x config/hooks/normal/0070-nexos-autologin.hook.chroot
+chmod +x config/hooks/normal/0070-alternix-autologin.hook.chroot
 
 # 2. profile.d script launches installer once root is logged in
 mkdir -p config/includes.chroot/etc/profile.d
-cat > config/includes.chroot/etc/profile.d/nexos-installer.sh << 'EOF'
+cat > config/includes.chroot/etc/profile.d/alternix-installer.sh << 'EOF'
 #!/bin/bash
-# Auto-launch NexOS installer if running as root on console
+# Auto-launch Alternix installer if running as root on console
 if [ "$(id -u)" -eq 0 ] && [ -f /installer/install.sh ]; then
     # Use bash not exec so Ctrl+C drops back to this shell
     bash /installer/install.sh
     echo ""
     echo "Installer exited. You are now at a shell."
     echo "To restart: bash /installer/install.sh"
-    echo "To view log: cat /tmp/nexos-install.log | tail -50"
+    echo "To view log: cat /tmp/alternix-install.log | tail -50"
 fi
 EOF
-chmod +x config/includes.chroot/etc/profile.d/nexos-installer.sh
+chmod +x config/includes.chroot/etc/profile.d/alternix-installer.sh
 
 _ok "Auto-launch configured."
 
@@ -404,20 +404,20 @@ fi
 # The binary hook below copies the versioned kernel to these names,
 # so kernel updates can never break the ISO boot.
 
-menuentry "NexOS Installer" {
-    search --no-floppy --label --set=root NexOS-Installer
+menuentry "Alternix Installer" {
+    search --no-floppy --label --set=root Alternix-Installer
     linux  ($root)/live/vmlinuz boot=live components live-config.username=root live-config.autologin=root pci=noaer quiet
     initrd ($root)/live/initrd.img
 }
 
-menuentry "NexOS Installer (nomodeset)" {
-    search --no-floppy --label --set=root NexOS-Installer
+menuentry "Alternix Installer (nomodeset)" {
+    search --no-floppy --label --set=root Alternix-Installer
     linux  ($root)/live/vmlinuz boot=live components live-config.username=root live-config.autologin=root pci=noaer nomodeset
     initrd ($root)/live/initrd.img
 }
 
-menuentry "NexOS Installer (safe mode)" {
-    search --no-floppy --label --set=root NexOS-Installer
+menuentry "Alternix Installer (safe mode)" {
+    search --no-floppy --label --set=root Alternix-Installer
     linux  ($root)/live/vmlinuz boot=live components live-config.username=root live-config.autologin=root pci=noaer noapic noacpi nomodeset
     initrd ($root)/live/initrd.img
 }
@@ -540,7 +540,7 @@ _ok "ISO written: ${OUTPUT_ISO}"
 SIZE=$(du -sh "$OUTPUT_ISO" | cut -f1)
 echo ""
 echo "  ══════════════════════════════════════════"
-echo "  NexOS Installer ISO built successfully"
+echo "  Alternix Installer ISO built successfully"
 echo "  Output: ${OUTPUT_ISO}"
 echo "  Size:   ${SIZE}"
 echo "  ══════════════════════════════════════════"

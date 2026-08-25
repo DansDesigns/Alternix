@@ -11,13 +11,13 @@
 cd ~
 
 # remove folder if it already exists (if re-building):
-sudo rm -rf ~/nexos-installer
+sudo rm -rf ~/alternix-installer
 
 # copy installer folder from Windows file system to Debian WSL2 (replace "Users/dan/github" with your username & folder location):
-cp -r /mnt/c/Users/dan/github/NexOS/nexos-installer ~/nexos-installer
+cp -r /mnt/c/Users/dan/github/NexOS/alternix-installer ~/alternix-installer
 
 
-cd ~/nexos-installer
+cd ~/alternix-installer
 
 sudo bash build-iso.sh
 
@@ -29,16 +29,16 @@ sudo bash build-iso.sh --amd    # AMD64
 
 
 
-# 2. ISO appears in ~/nexos-installer/
+# 2. ISO appears in ~/alternix-installer/
 
 
 # 3. Copy it back to windows file system when done (replace "dan/github" with your username & folder location):
 
-cp ~/nexos-installer/nexos-installer.iso /mnt/c/Users/dan/github/NexOS/
+cp ~/alternix-installer/alternix-installer.iso /mnt/c/Users/dan/github/NexOS/
 
 (future versions)
-cp ~/nexos-installer/nexos-installer-amd64.iso /mnt/c/Users/dan/github/NexOS/
-cp ~/nexos-installer/nexos-installer-arm64.iso /mnt/c/Users/dan/github/NexOS/
+cp ~/nexos-installer/alternix-installer-amd64.iso /mnt/c/Users/dan/github/NexOS/
+cp ~/nexos-installer/alternix-installer-arm64.iso /mnt/c/Users/dan/github/NexOS/
 
 
 ERROR NOTE:

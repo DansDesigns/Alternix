@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-# install_tier.sh — NexOS Tier Package Installation
+# install_tier.sh — Alternix Tier Package Installation
 # Installs hardware-tier-appropriate packages into target
 # ═══════════════════════════════════════════════════════════════
 
@@ -18,12 +18,12 @@ install_tier_packages() {
 }
 
 _chroot() {
-    chroot "$NEXOS_MOUNT" /bin/bash -c "$*"
+    chroot "$ALTERNIX_MOUNT" /bin/bash -c "$*"
 }
 
 # ── Tier 1: Full stack (8 GB+) ────────────────────────────────────
 _install_tier1() {
-    info "Tier 1 — Full stack. Installing all NexOS components."
+    info "Tier 1 — Full stack. Installing all Alternix components."
     echo ""
 
     local pkgs=(
@@ -78,7 +78,7 @@ _install_tier1() {
 
 # ── Tier 2: Standard (4–8 GB) ─────────────────────────────────────
 _install_tier2() {
-    info "Tier 2 — Standard. Installing core NexOS components."
+    info "Tier 2 — Standard. Installing core Alternix components."
     echo ""
 
     local pkgs=(
@@ -121,7 +121,7 @@ _install_tier2() {
 
 # ── Tier 3: Low-power (<4 GB) ─────────────────────────────────────
 _install_tier3() {
-    info "Tier 3 — Low-power. Installing minimal NexOS stack."
+    info "Tier 3 — Low-power. Installing minimal Alternix stack."
     info "Heavy compute will be forwarded to mesh nodes."
     echo ""
 
@@ -185,8 +185,8 @@ _install_ollama() {
     if wget -q -O "$tmp_tgz" "$ollama_url"; then
         spin_stop
         tar -xzf "$tmp_tgz" -C /tmp/
-        install -m 755 /tmp/ollama "${NEXOS_MOUNT}/usr/local/bin/ollama" 2>/dev/null || \
-        install -m 755 /tmp/bin/ollama "${NEXOS_MOUNT}/usr/local/bin/ollama" 2>/dev/null || true
+        install -m 755 /tmp/ollama "${ALTERNIX_MOUNT}/usr/local/bin/ollama" 2>/dev/null || \
+        install -m 755 /tmp/bin/ollama "${ALTERNIX_MOUNT}/usr/local/bin/ollama" 2>/dev/null || true
         rm -f "$tmp_tgz"
         ok "Ollama installed."
     else
@@ -195,7 +195,7 @@ _install_ollama() {
     fi
 
     # OpenRC service for Ollama
-    cat > "${NEXOS_MOUNT}/etc/init.d/ollama" << 'EOF'
+    cat > "${ALTERNIX_MOUNT}/etc/init.d/ollama" << 'EOF'
 #!/sbin/openrc-run
 name="ollama"
 description="Ollama LLM server"
@@ -210,8 +210,8 @@ depend() {
     need net
 }
 EOF
-    chmod +x "${NEXOS_MOUNT}/etc/init.d/ollama"
-    chroot "$NEXOS_MOUNT" rc-update add ollama default 2>/dev/null || true
+    chmod +x "${ALTERNIX_MOUNT}/etc/init.d/ollama"
+    chroot "$ALTERNIX_MOUNT" rc-update add ollama default 2>/dev/null || true
 
     echo ""
 }

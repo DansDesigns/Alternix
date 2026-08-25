@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-# ui.sh — NexOS Installer UI helpers
+# ui.sh — Alternix Installer UI helpers
 # ═══════════════════════════════════════════════════════════════
 
 R='\033[0;31m'; G='\033[0;32m'; Y='\033[0;33m'; B='\033[0;34m'
@@ -34,11 +34,11 @@ _draw_overall_bar() {
 # The banner occupies the top 16 lines; an ANSI scroll region (ESC[17;Nr)
 # confines all further console output BELOW it, so new text can never
 # push the banner off-screen.
-NEXOS_BANNER_LINES=16
+ALTERNIX_BANNER_LINES=16
 
 banner() {
     # Do not clear screen if an error is currently displayed
-    if [[ "${NEXOS_ERROR_SHOWN:-0}" -eq 1 ]]; then
+    if [[ "${ALTERNIX_ERROR_SHOWN:-0}" -eq 1 ]]; then
         return 0
     fi
     # Reset any previous scroll region, then clear
@@ -50,14 +50,14 @@ banner() {
     arch=$(uname -m 2>/dev/null || echo "?")
 
     echo -e "${T}"
-    echo "  ███╗   ██╗███████╗██╗  ██╗ ██████╗ ███████╗"
-    echo "  ████╗  ██║██╔════╝╚██╗██╔╝██╔═══██╗██╔════╝"
-    echo "  ██╔██╗ ██║█████╗   ╚███╔╝ ██║   ██║███████╗"
-    echo "  ██║╚██╗██║██╔══╝   ██╔██╗ ██║   ██║╚════██║"
-    echo "  ██║ ╚████║███████╗██╔╝ ██╗╚██████╔╝███████║"
-    echo "  ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝"
+    echo "   █████╗ ██╗     ████████╗███████╗██████╗ ███╗   ██╗██╗██╗  ██╗"
+    echo "  ██╔══██╗██║     ╚══██╔══╝██╔════╝██╔══██╗████╗  ██║██║╚██╗██╔╝"
+    echo "  ███████║██║        ██║   █████╗  ██████╔╝██╔██╗ ██║██║ ╚███╔╝ "
+    echo "  ██╔══██║██║        ██║   ██╔══╝  ██╔══██╗██║╚██╗██║██║ ██╔██╗ "
+    echo "  ██║  ██║███████╗   ██║   ███████╗██║  ██║██║ ╚████║██║██╔╝ ██╗"
+    echo "  ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝  ╚═╝"
     echo -e "${N}"
-    echo -e "  ${W}NexOS Installer v0.1${N}  ${D}One OS. Any machine.${N}"
+    echo -e "  ${W}Alternix Installer v0.1${N}  ${D}One OS. Any machine.${N}"
     echo ""
     echo -e "  ${D}CPU   ${N}${W}${cpu}${N}"
     # Battery meter (laptops) — blank on desktops
@@ -73,7 +73,7 @@ banner() {
         bat_str="   ${D}Batt${N} ${bat_col}${bat_sym}${bat_cap}%${N}"
     fi
     echo -e "  ${D}RAM   ${N}${W}${ram}${N}   ${D}Arch${N} ${W}${arch}${N}${bat_str}"
-    local _ec=${NEXOS_ERROR_COUNT:-0}
+    local _ec=${ALTERNIX_ERROR_COUNT:-0}
     if [[ $_ec -gt 0 ]]; then
         printf "  ${R}Errors Encountered: %02d${N}\n" "$_ec"
     else
@@ -82,12 +82,12 @@ banner() {
     echo ""
     _draw_overall_bar
 
-    # Lock the header: scrolling only happens below line NEXOS_BANNER_LINES
+    # Lock the header: scrolling only happens below line ALTERNIX_BANNER_LINES
     local _rows
     _rows=$(stty size 2>/dev/null | cut -d' ' -f1)
-    [[ -z "$_rows" || "$_rows" -le $(( NEXOS_BANNER_LINES + 4 )) ]] && _rows=24
-    printf '\033[%d;%dr' $(( NEXOS_BANNER_LINES + 1 )) "$_rows"
-    printf '\033[%d;1H' $(( NEXOS_BANNER_LINES + 1 ))
+    [[ -z "$_rows" || "$_rows" -le $(( ALTERNIX_BANNER_LINES + 4 )) ]] && _rows=24
+    printf '\033[%d;%dr' $(( ALTERNIX_BANNER_LINES + 1 )) "$_rows"
+    printf '\033[%d;1H' $(( ALTERNIX_BANNER_LINES + 1 ))
 }
 
 section() {
@@ -99,7 +99,7 @@ section() {
 info()  { echo -e "  ${D}·${N} $1"; }
 ok()    { echo -e "  ${G}✓${N} $1"; }
 warn()  { echo -e "  ${Y}!${N} $1"; }
-err()   { NEXOS_ERROR_COUNT=$(( ${NEXOS_ERROR_COUNT:-0} + 1 )); echo -e "  ${R}✗${N} $1"; }
+err()   { ALTERNIX_ERROR_COUNT=$(( ${ALTERNIX_ERROR_COUNT:-0} + 1 )); echo -e "  ${R}✗${N} $1"; }
 die()   { err "$1"; echo ""; exit 1; }
 
 confirm() {
@@ -195,9 +195,9 @@ select_font_size() {
         case "$choice" in ""|2) choice=2 ;; esac
         if [[ "$choice" =~ ^[1-4]$ ]]; then
             local idx=$(( choice - 1 ))
-            NEXOS_FONT_SETFONT="${setfont_map[$idx]}"
-            NEXOS_FONT_FACE="${console_setup_map[$idx]}"
-            NEXOS_FONT_SIZE="${console_size_map[$idx]}"
+            ALTERNIX_FONT_SETFONT="${setfont_map[$idx]}"
+            ALTERNIX_FONT_FACE="${console_setup_map[$idx]}"
+            ALTERNIX_FONT_SIZE="${console_size_map[$idx]}"
             break
         fi
         warn "Enter 1-4."
@@ -205,7 +205,7 @@ select_font_size() {
 
     # Apply immediately in the live console so the rest of the
     # installer is readable right away.
-    setfont "$NEXOS_FONT_SETFONT" 2>/dev/null || true
+    setfont "$ALTERNIX_FONT_SETFONT" 2>/dev/null || true
     ok "Console font set."
 }
 

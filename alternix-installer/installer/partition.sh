@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-# partition.sh — NexOS Installer Disk Partitioning
+# partition.sh — Alternix Installer Disk Partitioning
 # Modes: guided (auto layout), manual (user-defined)
 # ═══════════════════════════════════════════════════════════════
 
@@ -344,7 +344,7 @@ _format_partitions() {
 
 # ── Mount partitions ──────────────────────────────────────────────
 mount_partitions() {
-    local mnt="${1:-/mnt/nexos}"
+    local mnt="${1:-/mnt/alternix}"
 
     section "Mounting"
     mkdir -p "$mnt"
@@ -399,5 +399,5 @@ setup_disk() {
 
     select_disk
     select_partition_mode
-    mount_partitions /mnt/nexos
+    mount_partitions /mnt/alternix
 }
