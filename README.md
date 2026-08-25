@@ -67,7 +67,7 @@ When it finishes, remove the USB and reboot straight into the desktop.
 Build on Devuan/Debian/WSL2 Debian:
 
 ```bash
-git clone <this-repo>
+git clone https://github.com/DansDesigns/NexOS
 cd nexos-installer
 
 # Optional: add your own GRUB background
