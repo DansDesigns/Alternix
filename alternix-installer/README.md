@@ -1,15 +1,9 @@
-# Alternix
+# Alternix 
 
-**The operating system for Alternix.**
-
-Alternix is a custom, systemd-free Linux operating system built on Devuan
+A custom, systemd-free Linux operating system built on Devuan
 GNU/Linux, designed as the foundation for the
-[Alternix](https://github.com/AlterniTech/Alternix) desktop environment.
-Instead of installing Devuan and then running the Alternix installer as a
-separate step, Alternix bundles the whole thing into one ISO: boot it, answer a
-few questions, reboot into Alternix.
-
-It also compiles the seL4 microkernel from source during installation,
+[AlternixDE](https://alternitech.square.site/product/alternix/I52QT6S34WRONSEGWCUGEDAV) desktop environment.
+It incorporates the seL4 microkernel from source during installation,
 optimised for your exact CPU (`-march=native`), and installs it to
 `/opt/sel4/`.
 
@@ -18,17 +12,11 @@ optimised for your exact CPU (`-march=native`), and installs it to
 ## Features
 
 - **No systemd.** Devuan base with sysvinit/OpenRC. Clean, transparent init.
-- **Alternix included.** The installer clones and runs the official Alternix
-  installer as part of setup — the machine boots straight into the desktop.
-  No post-install terminal work, ever.
-- **seL4 microkernel** — formally verified microkernel, compiled natively for
-  your hardware at install time.
-- **Alternative desktops** — if you'd rather not use Alternix: XFCE, LXQt,
-  LXDE, MATE, Openbox, or CLI-only.
-- **Net installer** — small ISO, always installs the latest packages.
-- **WiFi built in** — choose ethernet or WiFi in the installer; credentials
-  carry over to the installed system and reconnect on boot. Type `wifi` in a
-  terminal to manage connections.
+- **seL4 microkernel** formally verified microkernel, compiled natively for your hardware at install time. (WIP)
+- **Net installer** small ISO, always installs the latest packages.
+- **Integrated Multi-System Emulation** Android & Windows native support with additional retro systems via RetroDeck. (WIP)
+- **Animated Fetch** use `fetch` command to dsplay system stats in the terminal.
+- **Visor UEFI Boot Manager** beautiful touch friendly UEFI interface.
 
 ---
 
@@ -41,11 +29,11 @@ optimised for your exact CPU (`-march=native`), and installs it to
 
 ---
 
-## Installing Alternix
+## Installing AlternixOS
 
 ### 1. Get the ISO
 
-Either download a release ISO, or build it yourself (see *Building the ISO*).
+Either download a release ISO ([here](https://github.com/DansDesigns/AlternixOS/releases)), or build it yourself (see *Building the ISO*).
 
 ### 2. Write it to a USB stick
 
@@ -78,10 +66,10 @@ When it finishes, remove the USB and reboot straight into the desktop.
 
 ## Building the ISO
 
-Build on a Devuan (or Debian) host:
+Build on Devuan/Debian/WSL2 Debian:
 
 ```bash
-git clone <this-repo>
+git clone https://github.com/DansDesigns/AlternixOS
 cd alternix-installer
 
 # Optional: add your own GRUB background
@@ -123,8 +111,8 @@ alternix-installer/
 ## Using the installed system
 
 - **WiFi:** type `wifi` for the connection TUI (or use `nmtui`)
-- **Packages:** `nala install <package>` (or `apt-get`)
-- **System info:** `fastfetch`
+- **Packages:** `sudo nala install <package>` (or `apt-get`)
+- **System info:** `fetch`
 - **seL4:** installed at `/opt/sel4/` (kernel.elf, headers, VERSION)
 
 ### Troubleshooting
@@ -137,15 +125,25 @@ installer.
 
 ---
 
-## Project family
+# The utilization of this Linux distribution is prohibited in jurisdictions mandating age verification.
+Any penalties or charges incurred due to non-compliance will be transferred to the user
 
-Alternix is part of the AlterniTech ecosystem:
+THIS INCLUDES BUT NOT LIMITED TO: THE FOLLOWING AREAS THAT ARE NOT ALLOWED TO USE THIS OS (THE LAWS ASSOCIATED):
+```
+New York (S8102A) after March 4th 2026.
+Brazil (15.211) after March 17th 2026.
+California (AB-1043) after January 1st 2027.
+Colorado (SB26-51) after January 1st 2028.
+Illinois (PENDING)
+Utah (PENDING)
+Texas (PENDING)
+Louisiana (PENDING)
+Michigan (PENDING)
+Oregon (PENDING)
+Entire USA (Federal: Parents Decide Act (PENDING))
+Singapore 
 
-- **Alternix** — the desktop environment Alternix is built for
-- **OSM-Phone** — open-source modular phone hardware (primary Alternix target)
-- **CEGA** — AI knowledge graph
-- **Ponder** — search engine
-- **VoxAir** — ComBadge wearable
+```
 
 ---
 

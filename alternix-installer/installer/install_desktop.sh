@@ -161,7 +161,7 @@ _install_alternix() {
 
     step 2 3 "Cloning Alternix repository..."
     if chroot "$ALTERNIX_MOUNT" git clone --depth=1 \
-        https://github.com/DansDesigns/Alternix.git \
+        https://github.com/DansDesigns/AlternixDE.git \
         "/home/${ALTERNIX_USERNAME}/Alternix" \
         2>&1 | tee -a "$ALTERNIX_LOG"; then
         ok "Alternix cloned."
